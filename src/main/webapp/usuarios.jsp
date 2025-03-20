@@ -194,9 +194,10 @@
       <!-- Sidebar -->
 
 <div class="sidebar">
-  <a href="#" onclick="mostrarSeccion('seccion-listar')">Listar Usuarios</a>
-  <a href="#" onclick="mostrarSeccion('seccion-agregar')">Agregar Usuario</a>
-  <a href="#" onclick="mostrarSeccion('seccion-editar')">Editar Usuario</a>
+  <a onclick="mostrarSeccion('seccion-listar')">Listar Usuarios</a>
+  <a onclick="mostrarSeccion('seccion-agregar')">Agregar Usuario</a>
+  <a onclick="mostrarSeccion('seccion-editar')">Editar Usuario</a>
+  <a onclick="window.location.href='index.jsp'">Volver a Vehiculos</a>
 </div>
 
       <!-- Contenido principal -->
@@ -327,11 +328,11 @@ function listarUsuarios() {
           <td>${usuario.NombreUsuario}</td>
           <td>${usuario.Cargo}</td>
           <td>${usuario.CorreoElectronico}</td>
-          <td>${usuario.Contrasenia}</td>
+          <td>${usuario.Contraseña}</td>
           <td>
             <button onclick="eliminarUsuario('${usuario.DNI}')">Eliminar</button>
             <button onclick="cargarEditar('${usuario.DNI}', '${usuario.NombreUsuario}', 
-               '${usuario.Cargo}', '${usuario.CorreoElectronico}', '${usuario.Contrasenia}')">
+               '${usuario.Cargo}', '${usuario.CorreoElectronico}', '${usuario.Contraseña}')">
                Editar
             </button>
           </td>

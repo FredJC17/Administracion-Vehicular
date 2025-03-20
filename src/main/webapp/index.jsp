@@ -1,3 +1,4 @@
+<%@page import="com.mycompany.mantenimientovehicular.ConexionDB"%>
 <%@page import="java.sql.Date"%>
 <%@page import="java.sql.DriverManager"%>
 <%@page import="java.sql.SQLException"%>
@@ -7,6 +8,7 @@
 <%@ page contentType="text/html; charset=UTF-8" %> 
 <%@ page session="true" %>
 <%@ page import="java.util.List" %>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -15,7 +17,32 @@
 <title>Mantenimiento Preventivo Vehicular</title>
 <style>
 body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: #969696;color: #333;}
-.header {background-color: #212121; color: white; padding: 35px;text-align: center; font-size: 40px;font-weight: bold;}
+.header {
+  display: flex;               /* Activar flexbox */
+  align-items: center;         /* Centrar verticalmente */
+  justify-content: space-between; /* Espacio entre el texto y el botón */
+  background-color: #333;      /* Fondo oscuro */
+  color: #fff;                 /* Texto blanco */
+  padding: 1rem;
+  box-sizing: border-box;      /* Incluir padding en el ancho total */
+  width: 100%;                /* Asegurar que ocupe todo el ancho disponible */
+}
+
+/* Texto a la izquierda */
+.header .Agregar a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 2rem;
+  cursor: pointer;
+  margin: 0;                  /* Eliminar márgenes por defecto */
+  padding: 0;                 /* Eliminar rellenos por defecto */
+}
+
+/* Eliminar márgenes y rellenos por defecto en todos los elementos del header */
+.header * {
+  margin: 0;
+  padding: 0;
+}
 .close {position: absolute;top: 20px;right: 20px;color: #00e5ff;float: right; background: transparent;border: none; font-size: 35px; font-weight: bold;cursor: pointer;}
 .close:hover,
 .close:focus {color: black;text-decoration: none; cursor: pointer;}
@@ -65,8 +92,11 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
 .btn-revision:hover::before {transform: scaleX(1);}
 .button-content { position: relative;z-index: 1;}
 .btn-revision::before {content: "";position: absolute; top: 0; left: 0;transform: scaleX(0);transform-origin: 0 50%; width: 100%;height: inherit;border-radius: inherit;background: linear-gradient(82.3deg,#0ef 10.8%,rgba(14, 239, 255, 0.7) 94.3% );transition: all 0.475s;}
-.modal-advertencia {display: none;  position: fixed; top: 50%; left: 50%;transform: translate(-50%, -50%);width: 90%;max-width: 750px;background-color: #222; color: #fff;border-radius: 10px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);padding: 20px;text-align: center;transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;opacity: 0;z-index: 1000;}
-.modal-advertencia-content { padding: 15px;font-size: 18px; word-wrap: break-word; overflow-wrap: break-word;max-height: 400px;overflow-y: auto;}
+.modal-advertencia {display: none;  position: fixed; z-index: 100000;top: 50%; left: 50%;transform: translate(-50%, -50%);width: 90%;
+ max-width: 750px;background-color: #222; color: #fff;border-radius: 10px;
+ padding: 20px;text-align: center;transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;opacity: 0;}
+.modal-advertencia-content { padding: 15px;font-size: 18px; word-wrap: break-word; overflow-wrap: break-word;max-height: 
+                                400px;overflow-y: auto;box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2); }
 .modal-advertencia .close {position: absolute;top: 15px; right: 20px; font-size: 40px;cursor: pointer; color: #ff5e5e;transition: color 0.3s ease;}
 .modal-advertencia .close:hover { color: #ff2a2a;}
 .btn-cerrar { background-color: #ff5e5e; border: none;color: white;padding: 10px 20px; margin-top: 10px;font-size: 16px; border-radius: 5px;cursor: pointer;transition: background-color 0.3s ease;}
@@ -79,15 +109,116 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
 .card-vencida .card_2:hover { transform: scale(0.96);border-radius: 20px;}
 @media screen and (max-width: 600px) {.card-vencida {width: 80%; height: auto;}
 .card-vencida .card_2 {width: 100%;height: auto;}}
-.btn-cerrarsesion {display: flex; align-items: center;justify-content: flex-start;width: 60px;height: 60px;border: none;border-radius: 50%;cursor: pointer;position: absolute; right: 20px;top: 25px;overflow: hidden;transition-duration: 0.3s; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.199); background-color: rgb(255, 65, 65); z-index: 1000;}
 .sign {width: 100%; transition-duration: 0.3s;display: flex;align-items: center;justify-content: center;}
 .sign svg { width: 24px;}
 .sign svg path {fill: white;}
 .text { position: absolute;right: 0%;  width: 0%; opacity: 0; color: white;font-size: 1.2em;font-weight: 600; transition-duration: 0.3s;}
-.btn-cerrarsesion:hover { width: 160px;border-radius: 40px;transition-duration: 0.3s;}
-.btn-cerrarsesion:hover .sign {width: 30%;transition-duration: 0.3s; padding-left: 20px;}
-.btn-cerrarsesion:hover .text {opacity: 1;width: 70%; transition-duration: 0.3s; padding-right: 10px;}
-.btn-cerrarsesion:active {transform: translate(2px, 2px);}
+/* From Uiverse.io by cssbuttons-io */
+.btn-salir {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  background-color: #ff3636; /* Color rojo */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+  margin: 0; /* Eliminar margen */
+  box-sizing: border-box; /* Incluir padding en el ancho total */
+}
+
+.btn-salir .icon {
+  display: flex;
+  align-items: center;
+  margin-right: 8px; /* Espacio entre el ícono y el texto */
+}
+
+.btn-salir .icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.btn-salir:hover {
+  background-color: #cc2a2a; /* Color rojo más oscuro al hover */
+}
+.btn-cont {
+  display: flex;
+  justify-content: center;    /* Centra horizontalmente */
+  align-items: center;        /* Centra verticalmente */
+  flex-wrap: wrap;            /* Permite que pasen a la siguiente línea si no caben */
+  gap: 10px;                  /* Espacio entre elementos */
+  padding: 10px;
+}
+
+/* Botones con el diseño 'btn-admin' */
+.btn-admin {
+  cursor: pointer;
+  position: relative;
+  padding: 10px 24px;
+  font-size: 18px;
+  color: rgb(255, 65, 65);
+  border: 2px solid rgb(255, 65, 65);
+  border-radius: 34px;
+  background-color: #202020;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+  overflow: hidden;
+  text-align: center;
+  display: inline-block;
+  white-space: nowrap;
+  min-width: 120px; /* Ancho mínimo */
+}
+
+.btn-admin::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 50px;
+  height: 50px;
+  border-radius: inherit;
+  scale: 0;
+  z-index: -1;
+  background-color: rgb(255, 65, 65);
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+}
+.btn-admin:hover::before {
+  scale: 3;
+}
+.btn-admin:hover {
+  color: #212121;
+  scale: 1.1;
+  box-shadow: 0 0px 20px rgba(193, 163, 98,0.4);
+}
+.btn-admin:active {
+  scale: 1;
+}
+
+/* Estilos para input y select con aspecto similar a .btn-admin */
+.input-admin, .select-admin {
+  font-size: 18px;
+  padding: 10px 20px;
+  border: 2px solid rgb(255,65,65);
+  border-radius: 34px;
+  background-color: #202020;
+  color: rgb(255, 65, 65);
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+  min-width: 120px;
+  outline: none;
+  margin-right: 5px; /* Pequeño espacio antes del botón */
+}
+.input-admin::placeholder {
+  color: rgba(255,65,65,0.5);
+}
+.input-admin:focus,
+.select-admin:focus {
+  border-color: #fff;
+}
 </style>
 </head>
 <body>
@@ -105,16 +236,55 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
     
     <!-- Encabezado -->
     
-    <div class="header">
-      <div class="Agregar">
-         <a onclick="AgregarVehiculo()">Mantenimiento Preventivo Vehicular</a>
-      </div> 
-<button class="btn-cerrarsesion" href="CerrarServlet">
-  <div class="sign"><svg viewBox="0 0 512 512"><path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"></path></svg></div> 
-  <div class="text">SALIR</div>
-</button>
-    </div>
+    <!-- titulo -->
     
+<div class="header">
+  <div class="Agregar">
+    <a onclick="AgregarVehiculo()">Mantenimiento Preventivo Vehicular</a>
+  </div>
+
+  <button class="btn-salir" onclick="window.location.href='CerrarServlet'">
+  <span class="icon">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+      <polyline points="16 17 21 12 16 7"></polyline>
+      <line x1="21" y1="12" x2="9" y2="12"></line>
+    </svg>
+  </span>
+</button>
+</div>
+
+    <div class="btn-cont">
+  <!-- Grupo Ordenar -->
+  <div>
+    <select class="select-admin" id="selectOrdenar">
+      <option value="Orden-alfabetico">Ordenar</option>
+      <option value="soat-proximo">SOAT proximo</option>
+      <option value="soat-lejano">SOAT lejano</option>
+      <option value="revision-proxima">Revision proxima</option>
+      <option value="revision-lejana">Revision lejana</option>
+      <option value="revision-proxima">Revision proxima</option>
+      <option value="vehiculo-antiguo">Vehiculo antiguo</option>
+      <option value="vehiculo-nuevo">Vehiculo nuevo</option>
+    </select>
+    <button class="btn-admin" onclick="ordenar()">ORDENAR</button>
+  </div>
+
+  <!-- Grupo Buscar -->
+  <div>
+    <input type="text" class="input-admin" id="inputBuscar" placeholder="Escribe placa...">
+    <button class="btn-admin" onclick="buscar()">BUSCAR</button>
+  </div>
+
+  
+  
+  <!-- Botón extra de ejemplo -->
+  <button class="btn-admin" onclick="window.location.href='usuarios.jsp'">USUARIOS</button>
+  
+  
+   
+</div>
+
     <!-- Modal para Agregar Vehiculos -->
     
     <div id="modal-agregar">

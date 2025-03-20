@@ -56,11 +56,14 @@ public class UsuariosServlet extends HttpServlet {
                 response.sendRedirect("usuarios.jsp");
         }
     }
+    
+    
+    
     private void listarUsuarios(HttpServletResponse response) throws IOException {
     response.setContentType("application/json;charset=UTF-8");
     List<Map<String, String>> lista = new ArrayList<>();
     try (Connection con = ConexionDB.getConexion()) {
-        String sql = "SELECT DNI, NombreUsuario, Cargo, CorreoElectronico, Contrasenia FROM Usuarios";
+        String sql = "SELECT DNI, NombreUsuario, Cargo, CorreoElectronico, Contraseña FROM Usuarios";
         PreparedStatement ps = con.prepareStatement(sql);
         ResultSet rs = ps.executeQuery();
         while (rs.next()) {
@@ -69,7 +72,7 @@ public class UsuariosServlet extends HttpServlet {
             user.put("NombreUsuario", rs.getString("NombreUsuario"));
             user.put("Cargo", rs.getString("Cargo"));
             user.put("CorreoElectronico", rs.getString("CorreoElectronico"));
-            user.put("Contrasenia", rs.getString("Contrasenia"));
+            user.put("Contraseña", rs.getString("Contraseña"));
             lista.add(user);
         }
     } catch (Exception e) {
