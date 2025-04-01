@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.*;
 import java.util.*;
+import java.util.Date;
 
 @WebServlet("/OrdenarServlet")
 public class OrdenarServlet extends HttpServlet {
@@ -15,87 +16,160 @@ public class OrdenarServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
 
-        // Indicamos que devolveremos JSON (UTF-8)
-        response.setContentType("application/json;charset=UTF-8");
-
-        // Obtenemos el criterio del parámetro
         String criterio = request.getParameter("criterio");
         if (criterio == null || criterio.trim().isEmpty()) {
-            // Si no hay criterio, devolvemos lista vacía
-            response.getWriter().write("[]");
-            return;
+            criterio = "Orden-alfabetico";
         }
 
-        // Según el criterio, definimos un ORDER BY distinto
         String orderBy = determinarOrderBy(criterio);
 
-        // Consulta base
-        List<Map<String, String>> listaVehiculos = new ArrayList<>();
+        PrintWriter out = response.getWriter();
+        StringBuilder html = new StringBuilder();
 
-        try (Connection con = ConexionDB.getConexion()) {
-            // Ajusta las columnas según tu tabla (ej. FechaCompra si la tienes)
-            String sql = "SELECT Placa, Marca, Modelo, FechaFinPagoSOAT, FechaRevFin, FechaCompra "
-                       + "FROM Vehiculos "
-                       + orderBy;  // Agregamos el ORDER BY
+        html.append("<div class='cards-container'>");
 
-            PreparedStatement ps = con.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            con = ConexionDB.getConexion();
+
+            String sql =
+    "SELECT v.placa, v.marca, v.modelo, v.color, v.detalles, "
+  + "       s.FechaFinPagoSOAT, r.FechaRevFin, "
+  + "       c.FechaPagoComb, c.Galones, c.KMComb, c.PrecioComb, "
+  + "       ms.FechaCambioSus, ms.Precio AS PrecioSus, ms.KMSus, "
+  + "       mf.FechaCambioFA, mf.PrecioFAceite, mf.KMFA, "
+  + "       ma.FechaCambioAceite, ma.PrecioAceite, ma.KMAceite, "
+  + "       mm.FechaMotor, mm.Precio AS PrecioMotor, mm.Kilometraje "
+  + "FROM Vehiculos v "
+
+  // subconsultas
+  + "LEFT JOIN ( "
+  + "    SELECT placa, MAX(IdSOAT) AS maxIdSoat "
+  + "    FROM SOAT "
+  + "    GROUP BY placa "
+  + ") subSoat ON v.placa = subSoat.placa "
+  + "LEFT JOIN SOAT s ON s.IdSOAT = subSoat.maxIdSoat "
+
+  + "LEFT JOIN ( "
+  + "    SELECT placa, MAX(IdRevision) AS maxIdRevision "
+  + "    FROM RevisionTecnica "
+  + "    GROUP BY placa "
+  + ") subRev ON v.placa = subRev.placa "
+  + "LEFT JOIN RevisionTecnica r ON r.IdRevision = subRev.maxIdRevision "
+
+  + "LEFT JOIN ( "
+  + "    SELECT placa, MAX(IdCombustible) AS maxIdComb "
+  + "    FROM Combustible "
+  + "    GROUP BY placa "
+  + ") subComb ON v.placa = subComb.placa "
+  + "LEFT JOIN Combustible c ON c.IdCombustible = subComb.maxIdComb "
+
+  + "LEFT JOIN ( "
+  + "    SELECT placa, MAX(IdMantSuspension) AS maxIdSus "
+  + "    FROM MantSuspension "
+  + "    GROUP BY placa "
+  + ") subSus ON v.placa = subSus.placa "
+  + "LEFT JOIN MantSuspension ms ON ms.IdMantSuspension = subSus.maxIdSus "
+
+  + "LEFT JOIN ( "
+  + "    SELECT placa, MAX(IdMantFAceite) AS maxIdFA "
+  + "    FROM MantFAceite "
+  + "    GROUP BY placa "
+  + ") subFA ON v.placa = subFA.placa "
+  + "LEFT JOIN MantFAceite mf ON mf.IdMantFAceite = subFA.maxIdFA "
+
+  + "LEFT JOIN ( "
+  + "    SELECT placa, MAX(IdMantAceite) AS maxIdAce "
+  + "    FROM MantAceite "
+  + "    GROUP BY placa "
+  + ") subAce ON v.placa = subAce.placa "
+  + "LEFT JOIN MantAceite ma ON ma.IdMantAceite = subAce.maxIdAce "
+
+  + "LEFT JOIN ( "
+  + "    SELECT placa, MAX(IdMantMotor) AS maxIdMotor "
+  + "    FROM MantMotor "
+  + "    GROUP BY placa "
+  + ") subMotor ON v.placa = subMotor.placa "
+  + "LEFT JOIN MantMotor mm ON mm.IdMantMotor = subMotor.maxIdMotor "
+
+  + "WHERE v.Borrado = 0"
+    + orderBy;
+
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+            Date hoy = new Date();
             while (rs.next()) {
-                Map<String, String> veh = new HashMap<>();
-                veh.put("Placa", rs.getString("Placa"));
-                veh.put("Marca", rs.getString("Marca"));
-                veh.put("Modelo", rs.getString("Modelo"));
+                String placa    = rs.getString("placa");
+                String marca    = rs.getString("marca");
+                String modelo   = rs.getString("modelo");
+                String color    = rs.getString("color");
+                String detalles = rs.getString("detalles");
+                Date fechaFinSOAT = rs.getDate("FechaFinPagoSOAT");
+                Date fechaRevFin  = rs.getDate("FechaRevFin");
 
-                // Ajusta los nombres si tus columnas se llaman distinto
-                veh.put("FechaFinPagoSOAT", rs.getString("FechaFinPagoSOAT"));
-                veh.put("FechaRevFin", rs.getString("FechaRevFin"));
-                veh.put("FechaCompra", rs.getString("FechaCompra"));
+                boolean soatVencido = (fechaFinSOAT != null && fechaFinSOAT.before(hoy));
+                boolean revVencido  = (fechaRevFin  != null && fechaRevFin.before(hoy));
+                String cardClass = (soatVencido || revVencido) ? "card-vencida" : "card_";
 
-                listaVehiculos.add(veh);
+                html.append("<div class='").append(cardClass).append("' ")
+                    .append("onclick=\"mostrarVentana('").append(placa != null ? placa : "").append("')\">")
+                    .append("<div class='card_2'>")
+                    .append("<h1>").append(placa != null ? placa : "").append("</h1>")
+                    .append("<h2>").append(marca != null ? marca : "").append(" (")
+                                  .append(modelo != null ? modelo : "").append(")</h2>")
+                    .append("<p>Color: ").append(color != null ? color : "").append("</p>")
+                    .append("<p>Detalles: ").append(detalles != null ? detalles : "").append("</p>")
+                    .append("<p>Rev. Técnica: ")
+                    .append(fechaRevFin != null ? fechaRevFin.toString() : "N/A")
+                    .append("</p>")
+                    .append("<p>SOAT: ")
+                    .append(fechaFinSOAT != null ? fechaFinSOAT.toString() : "N/A")
+                    .append("</p>")
+                    .append("</div></div>");
             }
         } catch (Exception e) {
+            html.append("<p>Error: ").append(e.getMessage()).append("</p>");
             e.printStackTrace();
+        } finally {
+            if (rs != null) try { rs.close(); } catch (Exception ex) {}
+            if (ps != null) try { ps.close(); } catch (Exception ex) {}
+            if (con != null) try { con.close(); } catch (Exception ex) {}
         }
+        html.append("</div>");
 
-        // Convertir a JSON
-        String json = new Gson().toJson(listaVehiculos);
-        PrintWriter out = response.getWriter();
-        out.write(json);
-    }
-
-    // Método auxiliar para definir el ORDER BY según el criterio
+        out.write(html.toString());
+    } 
     private String determinarOrderBy(String criterio) {
-        // Nota: Ajusta las columnas (Marca, FechaFinPagoSOAT, etc.) 
-        //       para que coincidan con tu base de datos
-        switch (criterio) {
-            case "Orden-alfabetico":
-                // Ordena por Marca (y tal vez Modelo) alfabéticamente
-                return "ORDER BY Marca ASC, Modelo ASC";
+    switch (criterio) {
+        case "Orden-alfabetico":
+            return "ORDER BY CASE WHEN v.Placa IS NULL THEN 1 ELSE 0 END, v.Placa ASC";
 
-            case "soat-proximo":
-                // FechaFinPagoSOAT de más cercano a más lejano
-                return "ORDER BY FechaFinPagoSOAT ASC";
+        case "soat-proximo":
+            return "ORDER BY CASE WHEN s.FechaFinPagoSOAT IS NULL THEN 1 ELSE 0 END, s.FechaFinPagoSOAT ASC";
 
-            case "soat-lejano":
-                return "ORDER BY FechaFinPagoSOAT DESC";
+        case "soat-lejano":
+            return "ORDER BY CASE WHEN s.FechaFinPagoSOAT IS NULL THEN 1 ELSE 0 END, s.FechaFinPagoSOAT DESC";
 
-            case "revision-proxima":
-                return "ORDER BY FechaRevFin ASC";
+        case "revision-proxima":
+            return "ORDER BY CASE WHEN r.FechaRevFin IS NULL THEN 1 ELSE 0 END, r.FechaRevFin ASC";
 
-            case "revision-lejana":
-                return "ORDER BY FechaRevFin DESC";
+        case "revision-lejana":
+            return "ORDER BY CASE WHEN r.FechaRevFin IS NULL THEN 1 ELSE 0 END, r.FechaRevFin DESC";
 
-            case "vehiculo-antiguo":
-                // FechaCompra de más antiguo a más nuevo
-                return "ORDER BY FechaCompra ASC";
+        case "vehiculo-antiguo":
+            return "ORDER BY CASE WHEN v.FechaCompra IS NULL THEN 1 ELSE 0 END, v.FechaCompra ASC";
 
-            case "vehiculo-nuevo":
-                return "ORDER BY FechaCompra DESC";
+        case "vehiculo-nuevo":
+            return "ORDER BY CASE WHEN v.FechaCompra IS NULL THEN 1 ELSE 0 END, v.FechaCompra DESC";
 
-            default:
-                // Si el criterio no coincide, ordenamos por placa
-                return "ORDER BY Placa ASC";
-        }
+        default:
+            return "ORDER BY CASE WHEN v.Placa IS NULL THEN 1 ELSE 0 END, v.Placa ASC";
     }
 }
+
+}
+

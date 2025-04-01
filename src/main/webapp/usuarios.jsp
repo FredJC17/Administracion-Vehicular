@@ -1,12 +1,89 @@
+<%@page contentType="text/html; charset=UTF-8" %>
+<%@ page import="java.sql.DriverManager" %>
+<%@ page import="java.sql.ResultSet" %>
+<%@ page import="java.sql.PreparedStatement" %>
+<%@ page import="java.sql.Connection" %>
 <%@ page import="java.util.*" %>
+<%
+    String mensaje = "";
+    String accionForm = request.getParameter("accion");
+    if(accionForm != null) {
+        try {
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            String url = "jdbc:sqlserver://10.0.1.2:1433;databaseName=ManPreVehi;encrypt=true;trustServerCertificate=true";
+            Connection conProc = DriverManager.getConnection(url, "pc1", "0969");
+            
+            if("agregarUsuario".equals(accionForm)) {
+                String dni = request.getParameter("dni");
+                String nombre = request.getParameter("nombreUsuario");
+                String cargo = request.getParameter("cargo");
+                String correo = request.getParameter("correoElectronico");
+                String pass = request.getParameter("contraseña");
+                String sqlAdd = "INSERT INTO Usuarios (DNI, NombreUsuario, Cargo, CorreoElectronico, Contraseña) VALUES (?, ?, ?, ?, ?)";
+                PreparedStatement psAdd = conProc.prepareStatement(sqlAdd);
+                psAdd.setString(1, dni);
+                psAdd.setString(2, nombre);
+                psAdd.setString(3, cargo);
+                psAdd.setString(4, correo);
+                psAdd.setString(5, pass);
+                int filas = psAdd.executeUpdate();
+                if(filas > 0) {
+                    mensaje = "Usuario agregado correctamente.";
+                } else {
+                    mensaje = "Error al agregar usuario.";
+                }
+                psAdd.close();
+            } else if("editarUsuario".equals(accionForm)) {
+                String dni = request.getParameter("dni");
+                String nombre = request.getParameter("nombreUsuario");
+                String cargo = request.getParameter("cargo");
+                String correo = request.getParameter("correoElectronico");
+                String pass = request.getParameter("contraseña");
+                String sqlEdit = "UPDATE Usuarios SET NombreUsuario=?, Cargo=?, CorreoElectronico=?, Contraseña=? WHERE DNI=?";
+                PreparedStatement psEdit = conProc.prepareStatement(sqlEdit);
+                psEdit.setString(1, nombre);
+                psEdit.setString(2, cargo);
+                psEdit.setString(3, correo);
+                psEdit.setString(4, pass);
+                psEdit.setString(5, dni);
+                int filas = psEdit.executeUpdate();
+                if(filas > 0) {
+                    mensaje = "Usuario actualizado correctamente.";
+                } else {
+                    mensaje = "Error al actualizar usuario.";
+                }
+                psEdit.close();
+            } else if("eliminarUsuario".equals(accionForm)) {
+                // Procesar la eliminación del usuario
+                String dni = request.getParameter("dni");
+                String sqlDel = "DELETE FROM Usuarios WHERE DNI = ?";
+                PreparedStatement psDel = conProc.prepareStatement(sqlDel);
+                psDel.setString(1, dni);
+                int filas = psDel.executeUpdate();
+                if(filas > 0) {
+                    mensaje = "Usuario eliminado correctamente.";
+                } else {
+                    mensaje = "Error al eliminar usuario.";
+                }
+                psDel.close();
+            }
+            conProc.close();
+        } catch(Exception e) {
+            mensaje = "Error: " + e.getMessage();
+            e.printStackTrace();
+        }
+    }
+%>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>CRUD de Usuarios</title>
     <style>
+      /* Estilos generales */
       body {
-        margin: 0; padding: 0;
+        margin: 0; 
+        padding: 0;
         font-family: Arial, sans-serif;
         background: #1f1f1f;
         color: #fff;
@@ -26,6 +103,7 @@
         text-decoration: none;
         padding: 12px 16px;
         transition: background 0.3s;
+        cursor: pointer;
       }
       .sidebar a:hover {
         background: #444;
@@ -48,10 +126,9 @@
       th, td {
         border: 1px solid #555;
         padding: 8px;
+        text-align: center;
       }
-      th {
-        background: #444;
-      }
+      th { background: #444; }
       button {
         cursor: pointer;
         background: #f7e479;
@@ -60,9 +137,7 @@
         margin: 0 3px;
         border-radius: 4px;
       }
-      button:hover {
-        background: #f2cd49;
-      }
+      button:hover { background: #f2cd49; }
       a.button-link {
         display: inline-block;
         background: #f7e479;
@@ -71,9 +146,7 @@
         text-decoration: none;
         border-radius: 4px;
       }
-      a.button-link:hover {
-        background: #f2cd49;
-      }
+      a.button-link:hover { background: #f2cd49; }
       form {
         max-width: 400px;
         margin: 1rem auto;
@@ -88,7 +161,9 @@
       }
       input[type="text"],
       input[type="email"],
-      input[type="password"] {
+      input[type="password"],
+      input[type="date"],
+      input[type="number"] {
         width: 100%;
         padding: 8px;
         margin-top: 5px;
@@ -97,15 +172,15 @@
         background: #111;
         color: #fff;
       }
-      input[type="text"]:focus,
-      input[type="email"]:focus,
-      input[type="password"]:focus {
-        outline: none;
-        border-color: #f7e479;
-      }
-      button[type="submit"] {
-        margin-top: 10px;
-        width: 100%;
+      input:focus { outline: none; border-color: #f7e479; }
+      button[type="submit"] { margin-top: 10px; width: 100%; }
+      /* Estilo para el select de la sección editar */
+      label[for="cargoEditar"] {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #f7e479;
       }
       .radio-container {
         --main-color: #f7e479;
@@ -187,188 +262,191 @@
       .radio-container input:nth-of-type(3):checked ~ .glider-container .glider {
         transform: translateY(200%);
       }
+      label[for="cargoEditar"] {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #f7e479;
+}
+
+      select#cargoEditar {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #444;
+        border-radius: 4px;
+        background: #111;
+        color: #fff;
+        font-size: 16px;
+        transition: border-color 0.3s;
+      }
+      select#cargoEditar:focus {
+        outline: none;
+        border-color: #f7e479;
+      }
     </style>
+    <script>
+      function mostrarSeccion(id) {
+          document.querySelectorAll('.seccion').forEach(sec => sec.classList.remove('active'));
+          document.getElementById(id).classList.add('active');
+      }
+      document.addEventListener('DOMContentLoaded', function() {
+          mostrarSeccion('seccion-listar');
+      });
+    </script>
 </head>
 <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a onclick="mostrarSeccion('seccion-listar')">Listar Usuarios</a>
+        <a onclick="mostrarSeccion('seccion-agregar')">Agregar Usuario</a>
+        <a onclick="mostrarSeccion('seccion-editar')">Editar Usuario</a>
+        <a onclick="window.location.href='index.jsp'">Volver a Vehículos</a>
+    </div>
 
-      <!-- Sidebar -->
-
-<div class="sidebar">
-  <a onclick="mostrarSeccion('seccion-listar')">Listar Usuarios</a>
-  <a onclick="mostrarSeccion('seccion-agregar')">Agregar Usuario</a>
-  <a onclick="mostrarSeccion('seccion-editar')">Editar Usuario</a>
-  <a onclick="window.location.href='index.jsp'">Volver a Vehiculos</a>
-</div>
-
-      <!-- Contenido principal -->
-
-<div class="content">
-  <h1>Administraci�n de Usuarios</h1>
-
-      <!-- Secci�n Listar -->
-  
-  <div id="seccion-listar" class="seccion">
-    <h2>Listado de Usuarios</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>DNI</th>
-          <th>Nombre</th>
-          <th>Cargo</th>
-          <th>Correo</th>
-          <th>Contrase�a</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="tablaUsuariosBody">
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Secci�n Agregar -->
-  
-  <div id="seccion-agregar" class="seccion">
-    <h2>Agregar Usuario</h2>
-    <form action="UsuariosServlet" method="post" onsubmit="return validarAgregar()">
-      <input type="hidden" name="accion" value="agregar"/>
-
-      <label>DNI:</label>
-      <input type="text" name="dni" id="dniAgregar" required/>
-
-      <label>Nombre de Usuario:</label>
-      <input type="text" name="nombreUsuario" id="nombreAgregar" required/>
-
-      <label>Cargo:</label>
-      <div class="radio-container">
-        <input type="radio" name="cargo" id="cargo1" value="Empleado" checked>
-        <label for="cargo1">Empleado</label>
-
-        <input type="radio" name="cargo" id="cargo2" value="Administrador">
-        <label for="cargo2">Administrador</label>
-
-        <input type="radio" name="cargo" id="cargo3" value="Desarrollador">
-        <label for="cargo3">Desarrollador</label>
-
-        <div class="glider-container">
-          <div class="glider"></div>
+    <!-- Contenido principal -->
+    <div class="content">
+        <h1>Administración de Usuarios</h1>
+        <% if(!mensaje.isEmpty()) { %>
+          <p style="color:yellow; text-align:center;"><%= mensaje %></p>
+        <% } %>
+        
+        <!-- Sección Listar Usuarios -->
+        <div id="seccion-listar" class="seccion active">
+            <h2>Listado de Usuarios</h2>
+            <table class="tabla-usuarios">
+                <thead>
+                    <tr>
+                        <th>DNI</th>
+                        <th>Nombre de Usuario</th>
+                        <th>Cargo</th>
+                        <th>Correo Electrónico</th>
+                        <th>Contraseña</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <%
+                    Connection conList = null;
+                    PreparedStatement psList = null;
+                    ResultSet rsList = null;
+                    try {
+                        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+                        String url = "jdbc:sqlserver://10.0.1.2:1433;databaseName=ManPreVehi;encrypt=true;trustServerCertificate=true";
+                        conList = DriverManager.getConnection(url, "pc1", "0969");
+                        String sqlList = "SELECT DNI, NombreUsuario, Cargo, CorreoElectronico, Contraseña FROM Usuarios";
+                        psList = conList.prepareStatement(sqlList);
+                        rsList = psList.executeQuery();
+                        boolean hayDatos = false;
+                        while (rsList.next()) {
+                            hayDatos = true;
+                            String dni = rsList.getString("DNI");
+                            String nombre = rsList.getString("NombreUsuario");
+                            String cargo = rsList.getString("Cargo");
+                            String correo = rsList.getString("CorreoElectronico");
+                            String contrasena = rsList.getString("Contraseña");
+                    %>
+                    <tr>
+                        <td><%= dni %></td>
+                        <td><%= nombre %></td>
+                        <td><%= cargo %></td>
+                        <td><%= correo %></td>
+                        <td><%= contrasena %></td>
+                        <td>
+                            <a class="button-link" href="javascript:cargarEditarUsuario('<%= dni %>', '<%= nombre %>', '<%= cargo %>', '<%= correo %>', '<%= contrasena %>')">Editar</a>
+                            <a class="button-link" href="usuarios.jsp?accion=eliminarUsuario&dni=<%= dni %>" onclick="return confirm('¿Está seguro de eliminar este usuario?');">Eliminar</a>
+                        </td>
+                    </tr>
+                    <%
+                        }
+                        if (!hayDatos) {
+                    %>
+                    <tr>
+                        <td colspan="6">No hay usuarios registrados.</td>
+                    </tr>
+                    <%
+                        }
+                    } catch(Exception e) {
+                        out.println("<tr><td colspan='6'>Error: " + e.getMessage() + "</td></tr>");
+                        e.printStackTrace();
+                    } finally {
+                        if (rsList != null) try { rsList.close(); } catch(Exception e){}
+                        if (psList != null) try { psList.close(); } catch(Exception e){}
+                        if (conList != null) try { conList.close(); } catch(Exception e){}
+                    }
+                    %>
+                </tbody>
+            </table>
         </div>
-      </div>
+        
+        <!-- Sección Agregar Usuario -->
 
-      <label>Correo Electr�nico:</label>
-      <input type="email" name="correoElectronico" id="correoAgregar" required/>
-
-      <label>Contrase�a:</label>
-      <input type="password" name="contrase�a" id="passAgregar" required/>
-
-      <button type="submit">Guardar</button>
-    </form>
-  </div>
-
-  <!-- Secci�n Editar -->
-  
-  <div id="seccion-editar" class="seccion">
-    <h2>Editar Usuario</h2>
-    <form action="UsuariosServlet" method="post" onsubmit="return validarEditar()">
-      <input type="hidden" name="accion" value="editar"/>
-
-      <label>DNI (No editable):</label>
-      <input type="text" name="dni" id="dniEditar" readonly/>
-
-      <label>Nombre de Usuario:</label>
-      <input type="text" name="nombreUsuario" id="nombreEditar" required/>
-
-      <label>Cargo:</label>
-      <div class="radio-container">
-        <input type="radio" name="cargo" id="cargoEdit1" value="Empleado">
-        <label for="cargoEdit1">Empleado</label>
-
-        <input type="radio" name="cargo" id="cargoEdit2" value="Administrador">
-        <label for="cargoEdit2">Administrador</label>
-
-        <input type="radio" name="cargo" id="cargoEdit3" value="Desarrollador">
-        <label for="cargoEdit3">Desarrollador</label>
-
-        <div class="glider-container">
-          <div class="glider"></div>
+        <div id="seccion-agregar" class="seccion">
+            <h2>Agregar Usuario</h2>
+            <form id="formAgregarUsuario" action="usuarios.jsp" method="post">
+                <input type="hidden" name="accion" value="agregarUsuario"/>
+                <label>DNI:</label>
+                <input type="text" name="dni" required/>
+                <label>Nombre de Usuario:</label>
+                <input type="text" name="nombreUsuario" required/>
+                <label>Cargo:</label>
+                <div class="radio-container">
+                    <input type="radio" name="cargo" id="cargo1" value="Empleado" checked>
+                    <label for="cargo1">Empleado</label>
+                    <input type="radio" name="cargo" id="cargo2" value="Administrador">
+                    <label for="cargo2">Administrador</label>
+                    <input type="radio" name="cargo" id="cargo3" value="Desarrollador">
+                    <label for="cargo3">Desarrollador</label>
+                    <div class="glider-container">
+                        <div class="glider"></div>
+                    </div>
+                </div>
+                <label>Correo Electrónico:</label>
+                <input type="email" name="correoElectronico" required/>
+                <label>Contraseña:</label>
+                <input type="password" name="contraseña" required/>
+                <button type="submit">Guardar</button>
+            </form>
+            <script>
+              <% if("Usuario agregado correctamente.".equals(mensaje)) { %>
+                  document.getElementById("formAgregarUsuario").reset();
+              <% } %>
+            </script>
         </div>
-      </div>
+        
+        <!-- Sección Editar Usuario -->
+        <div id="seccion-editar" class="seccion">
+            <h2>Editar Usuario</h2>
+            <form action="usuarios.jsp" method="post">
+                <input type="hidden" name="accion" value="editarUsuario"/>
+                <label>DNI (No editable):</label>
+                <input type="text" name="dni" id="dniEditar" readonly/>
+                <label>Nombre de Usuario:</label>
+                <input type="text" name="nombreUsuario" id="nombreEditar" required/>
+                <label>Cargo:</label>
+                <select name="cargo" id="cargoEditar">
+                    <option value="Empleado">Empleado</option>
+                    <option value="Administrador">Administrador</option>
+                    <option value="Desarrollador">Desarrollador</option>
+                </select>
+                <label>Correo Electrónico:</label>
+                <input type="email" name="correoElectronico" id="correoEditar" required/>
+                <label>Contraseña:</label>
+                <input type="password" name="contraseña" id="passEditar" required/>
+                <button type="submit">Actualizar</button>
+            </form>
+        </div>
+    </div>
 
-      <label>Correo Electr�nico:</label>
-      <input type="email" name="correoElectronico" id="correoEditar" required/>
-
-      <label>Contrase�a:</label>
-      <input type="password" name="contrase�a" id="passEditar" required/>
-
-      <button type="submit">Actualizar</button>
-    </form>
-  </div>
-
-</div>
-
-<script>
-function mostrarSeccion(id) {
-  document.querySelectorAll('.seccion').forEach(sec => sec.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-
-  if (id === 'seccion-listar') {
-    listarUsuarios();
-  }
-}
-function listarUsuarios() {
-  fetch('UsuariosServlet?accion=listar')
-    .then(resp => resp.json())
-    .then(data => {
-      const tbody = document.getElementById('tablaUsuariosBody');
-      tbody.innerHTML = '';
-
-      data.forEach(usuario => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${usuario.DNI}</td>
-          <td>${usuario.NombreUsuario}</td>
-          <td>${usuario.Cargo}</td>
-          <td>${usuario.CorreoElectronico}</td>
-          <td>${usuario.Contrase�a}</td>
-          <td>
-            <button onclick="eliminarUsuario('${usuario.DNI}')">Eliminar</button>
-            <button onclick="cargarEditar('${usuario.DNI}', '${usuario.NombreUsuario}', 
-               '${usuario.Cargo}', '${usuario.CorreoElectronico}', '${usuario.Contrase�a}')">
-               Editar
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    })
-    .catch(err => console.error(err));
-}
-function eliminarUsuario(dni) {
-  if (!confirm('�Seguro que deseas eliminar este usuario?')) return;
-  window.location.href = 'UsuariosServlet?accion=eliminar&DNI=' + dni;
-}
-function cargarEditar(dni, nombre, cargo, correo, pass) {
-  document.getElementById('dniEditar').value = dni;
-  document.getElementById('nombreEditar').value = nombre;
-  document.getElementById('correoEditar').value = correo;
-  document.getElementById('passEditar').value = pass;
-  if (cargo === 'Empleado') {
-    document.getElementById('cargoEdit1').checked = true;
-  } else if (cargo === 'Administrador') {
-    document.getElementById('cargoEdit2').checked = true;
-  } else if (cargo === 'Desarrollador') {
-    document.getElementById('cargoEdit3').checked = true;
-  }
-  mostrarSeccion('seccion-editar');
-}
-function validarAgregar() {
-  return true;
-}
-function validarEditar() {
-  return true;
-}
-document.addEventListener('DOMContentLoaded', () => {
-  mostrarSeccion('seccion-listar');
-});
-</script>
+    <script>
+      function cargarEditarUsuario(dni, nombre, cargo, correo, pass) {
+          document.getElementById('dniEditar').value = dni;
+          document.getElementById('nombreEditar').value = nombre;
+          document.getElementById('cargoEditar').value = cargo;
+          document.getElementById('correoEditar').value = correo;
+          document.getElementById('passEditar').value = pass;
+          mostrarSeccion('seccion-editar');
+      }
+    </script>
 </body>
 </html>

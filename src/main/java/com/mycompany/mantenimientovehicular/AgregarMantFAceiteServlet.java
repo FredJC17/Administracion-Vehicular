@@ -16,10 +16,6 @@ public class AgregarMantFAceiteServlet extends HttpServlet {
         String fechaStr = request.getParameter("FechaCambioFA");
         String kmStr = request.getParameter("KMFA");
 
-        System.out.println("Servlet MantFAceite - placa: " + placa + 
-                           ", PrecioFAceite: " + precioStr + 
-                           ", FechaCambioFA: " + fechaStr +
-                           ", KMFA: " + kmStr);
 
         double precioFAceite = 0.0;
         int kmFA = 0;
@@ -31,7 +27,6 @@ public class AgregarMantFAceiteServlet extends HttpServlet {
                 kmFA = Integer.parseInt(kmStr);
             }
         } catch (NumberFormatException ex) {
-            System.out.println("Error parseando números: " + ex.getMessage());
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parámetros numéricos inválidos");
             return;
         }
@@ -41,7 +36,6 @@ public class AgregarMantFAceiteServlet extends HttpServlet {
                 fechaCambioFA = java.sql.Date.valueOf(fechaStr); 
             }
         } catch (IllegalArgumentException ex) {
-            System.out.println("Error parseando fecha: " + ex.getMessage());
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Fecha inválida");
             return;
         }
@@ -59,7 +53,6 @@ public class AgregarMantFAceiteServlet extends HttpServlet {
             ps.setInt(4, kmFA);
 
             int rowsInserted = ps.executeUpdate();
-            System.out.println("Filas insertadas en MantFAceite: " + rowsInserted);
             response.sendRedirect("index.jsp");
 
         } catch (Exception e) {

@@ -13,17 +13,23 @@ import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/IngresoServlet")
 public class IngresoServlet extends HttpServlet {
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
         String usuarioODNI = request.getParameter("usuarioODNI");
         String password = request.getParameter("password");
+
         try {
             Connection conn = ConexionDB.getConexion();
-            String sql = "SELECT NombreUsuario, DNI, Cargo FROM Usuarios WHERE (NombreUsuario = ? OR DNI = ?) AND Contraseña = ?";
+
+            String sql = "SELECT NombreUsuario, DNI, Cargo FROM Usuarios "
+                       + "WHERE (NombreUsuario = ? OR DNI = ?) AND Contraseña = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, usuarioODNI);
             stmt.setString(2, usuarioODNI);
             stmt.setString(3, password);
             ResultSet rs = stmt.executeQuery();
+
             if (rs.next()) {
                 String nombre = rs.getString("NombreUsuario");
                 String dni = rs.getString("DNI");
@@ -42,8 +48,3 @@ public class IngresoServlet extends HttpServlet {
         }
     }
 }
-
-
-
-
-

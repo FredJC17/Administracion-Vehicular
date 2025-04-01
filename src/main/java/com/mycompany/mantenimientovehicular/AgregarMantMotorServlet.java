@@ -16,10 +16,6 @@ public class AgregarMantMotorServlet extends HttpServlet {
         String fechaStr = request.getParameter("FechaMotor");
         String kmStr = request.getParameter("Kilometraje");
 
-        System.out.println("Servlet MantMotor - placa: " + placa + 
-                           ", Precio: " + precioStr + 
-                           ", FechaMotor: " + fechaStr +
-                           ", Kilometraje: " + kmStr);
         double precio = 0.0;
         int kilometraje = 0;
         try {
@@ -30,7 +26,6 @@ public class AgregarMantMotorServlet extends HttpServlet {
                 kilometraje = Integer.parseInt(kmStr);
             }
         } catch (NumberFormatException ex) {
-            System.out.println("Error parseando números: " + ex.getMessage());
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parámetros numéricos inválidos");
             return;
         }
@@ -40,7 +35,6 @@ public class AgregarMantMotorServlet extends HttpServlet {
                 fechaMotor = java.sql.Date.valueOf(fechaStr);
             }
         } catch (IllegalArgumentException ex) {
-            System.out.println("Error parseando fecha: " + ex.getMessage());
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Fecha inválida");
             return;
         }
@@ -57,7 +51,6 @@ public class AgregarMantMotorServlet extends HttpServlet {
             ps.setDate(3, fechaMotor);
             ps.setInt(4, kilometraje);
             int rowsInserted = ps.executeUpdate();
-            System.out.println("Filas insertadas en MantMotor: " + rowsInserted);
             response.sendRedirect("index.jsp");
         } catch (Exception e) {
             e.printStackTrace();

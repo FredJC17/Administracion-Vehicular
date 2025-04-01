@@ -18,13 +18,6 @@ public class AgregarCombustibleServlet extends HttpServlet {
         String tipoComb = request.getParameter("TipoCombustible");
         String kmStr = request.getParameter("KMComb");
 
-        System.out.println("Servlet Combustible - placa: " + placa + 
-                           ", Galones: " + galonesStr + 
-                           ", PrecioComb: " + precioStr +
-                           ", FechaPagoComb: " + fechaStr +
-                           ", TipoCombustible: " + tipoComb +
-                           ", KMComb: " + kmStr);
-
         double galones = 0.0;
         double precio = 0.0;
         int kmComb = 0;
@@ -39,7 +32,6 @@ public class AgregarCombustibleServlet extends HttpServlet {
                 kmComb = Integer.parseInt(kmStr);
             }
         } catch (NumberFormatException ex) {
-            System.out.println("Error parseando números: " + ex.getMessage());
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parámetros numéricos inválidos");
             return;
         }
@@ -50,13 +42,11 @@ public class AgregarCombustibleServlet extends HttpServlet {
                 fechaPago = java.sql.Date.valueOf(fechaStr);
             }
         } catch (IllegalArgumentException ex) {
-            System.out.println("Error parseando fecha: " + ex.getMessage());
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Fecha inválida");
             return;
         }
         
         if (!("Diesel".equals(tipoComb) || "Gas Licuado de Petroleo".equals(tipoComb) || "Gasolina".equals(tipoComb))) {
-            System.out.println("TipoCombustible inválido: " + tipoComb);
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "TipoCombustible inválido");
             return;
         }
@@ -76,7 +66,6 @@ public class AgregarCombustibleServlet extends HttpServlet {
             ps.setString(5, tipoComb);
             ps.setInt(6, kmComb);
             int rowsInserted = ps.executeUpdate();
-            System.out.println("Filas insertadas en Combustible: " + rowsInserted);
             response.sendRedirect("index.jsp");
 
         } catch (Exception e) {

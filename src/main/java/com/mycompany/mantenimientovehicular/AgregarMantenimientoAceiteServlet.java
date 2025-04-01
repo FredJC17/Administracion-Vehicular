@@ -16,11 +16,6 @@ public class AgregarMantenimientoAceiteServlet extends HttpServlet {
         String cantStr = request.getParameter("CantAceite");
         String fechaStr = request.getParameter("FechaCambioAceite");
         String kmStr = request.getParameter("KMAceite");
-        System.out.println("Servlet - placa: " + placa + 
-                           ", PrecioAceite: " + precioStr + 
-                           ", CantAceite: " + cantStr +
-                           ", FechaCambioAceite: " + fechaStr +
-                           ", KMAceite: " + kmStr);
         double precioAceite = 0.0;
         double cantAceite = 0.0;
         int kmAceite = 0;
@@ -35,7 +30,6 @@ public class AgregarMantenimientoAceiteServlet extends HttpServlet {
                 kmAceite = Integer.parseInt(kmStr);
             }
         } catch (NumberFormatException ex) {
-            System.out.println("Error parseando números: " + ex.getMessage());
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parámetros numéricos inválidos");
             return;
         }
@@ -45,7 +39,6 @@ public class AgregarMantenimientoAceiteServlet extends HttpServlet {
                 fechaCambio = java.sql.Date.valueOf(fechaStr); 
             }
         } catch (IllegalArgumentException ex) {
-            System.out.println("Error parseando fecha: " + ex.getMessage());
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Fecha inválida");
             return;
         }
@@ -63,7 +56,6 @@ public class AgregarMantenimientoAceiteServlet extends HttpServlet {
             ps.setDate(4, fechaCambio);
             ps.setInt(5, kmAceite);
             int rowsInserted = ps.executeUpdate();
-            System.out.println("Filas insertadas en MantAceite: " + rowsInserted);
             response.sendRedirect("index.jsp");
         } catch (Exception e) {
             e.printStackTrace();

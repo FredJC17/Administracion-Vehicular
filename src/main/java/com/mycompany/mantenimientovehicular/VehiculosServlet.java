@@ -18,79 +18,79 @@ public class VehiculosServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
         StringBuilder html = new StringBuilder();
         html.append("<div class='cards-container'>");
+
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
+
         try {
             con = ConexionDB.getConexion();
+
             String sql =
-    "SELECT v.placa, v.marca, v.modelo, v.color, v.detalles, " +
-    "       s.FechaFinPagoSOAT, r.FechaRevFin, " +
-    "       c.FechaPagoComb, c.Galones, c.KMComb, c.PrecioComb, " +
-    "       ms.FechaCambioSus, ms.Precio AS PrecioSus, ms.KMSus, " +
-    "       mf.FechaCambioFA, mf.PrecioFAceite, mf.KMFA, " +
-    "       ma.FechaCambioAceite, ma.PrecioAceite, ma.KMAceite, " +
-    "       mm.FechaMotor, mm.Precio AS PrecioMotor, mm.Kilometraje " +
-    "FROM Vehiculos v " +
+    "SELECT v.placa, v.marca, v.modelo, v.color, v.detalles, "
+  + "       s.FechaFinPagoSOAT, r.FechaRevFin, "
+  + "       c.FechaPagoComb, c.Galones, c.KMComb, c.PrecioComb, "
+  + "       ms.FechaCambioSus, ms.Precio AS PrecioSus, ms.KMSus, "
+  + "       mf.FechaCambioFA, mf.PrecioFAceite, mf.KMFA, "
+  + "       ma.FechaCambioAceite, ma.PrecioAceite, ma.KMAceite, "
+  + "       mm.FechaMotor, mm.Precio AS PrecioMotor, mm.Kilometraje "
+  + "FROM Vehiculos v "
 
-    // SOAT MAS ALTO
-    "LEFT JOIN ( " +
-    "    SELECT placa, MAX(IdSOAT) AS maxIdSoat " +
-    "    FROM SOAT " +
-    "    GROUP BY placa " +
-    ") subSoat ON v.placa = subSoat.placa " +
-    "LEFT JOIN SOAT s ON s.IdSOAT = subSoat.maxIdSoat " +
+  // subconsultas
+  + "LEFT JOIN ( "
+  + "    SELECT placa, MAX(IdSOAT) AS maxIdSoat "
+  + "    FROM SOAT "
+  + "    GROUP BY placa "
+  + ") subSoat ON v.placa = subSoat.placa "
+  + "LEFT JOIN SOAT s ON s.IdSOAT = subSoat.maxIdSoat "
 
-    //RevTec. mas alta
-    "LEFT JOIN ( " +
-    "    SELECT placa, MAX(IdRevision) AS maxIdRevision " +
-    "    FROM RevisionTecnica " +
-    "    GROUP BY placa " +
-    ") subRev ON v.placa = subRev.placa " +
-    "LEFT JOIN RevisionTecnica r ON r.IdRevision = subRev.maxIdRevision " +
+  + "LEFT JOIN ( "
+  + "    SELECT placa, MAX(IdRevision) AS maxIdRevision "
+  + "    FROM RevisionTecnica "
+  + "    GROUP BY placa "
+  + ") subRev ON v.placa = subRev.placa "
+  + "LEFT JOIN RevisionTecnica r ON r.IdRevision = subRev.maxIdRevision "
 
-    // comb...
-    "LEFT JOIN ( " +
-    "    SELECT placa, MAX(IdCombustible) AS maxIdComb " +
-    "    FROM Combustible " +
-    "    GROUP BY placa " +
-    ") subComb ON v.placa = subComb.placa " +
-    "LEFT JOIN Combustible c ON c.IdCombustible = subComb.maxIdComb " +
+  + "LEFT JOIN ( "
+  + "    SELECT placa, MAX(IdCombustible) AS maxIdComb "
+  + "    FROM Combustible "
+  + "    GROUP BY placa "
+  + ") subComb ON v.placa = subComb.placa "
+  + "LEFT JOIN Combustible c ON c.IdCombustible = subComb.maxIdComb "
 
-    // suspension...
-    "LEFT JOIN ( " +
-    "    SELECT placa, MAX(IdMantSuspension) AS maxIdSus " +
-    "    FROM MantSuspension " +
-    "    GROUP BY placa " +
-    ") subSus ON v.placa = subSus.placa " +
-    "LEFT JOIN MantSuspension ms ON ms.IdMantSuspension = subSus.maxIdSus " +
+  + "LEFT JOIN ( "
+  + "    SELECT placa, MAX(IdMantSuspension) AS maxIdSus "
+  + "    FROM MantSuspension "
+  + "    GROUP BY placa "
+  + ") subSus ON v.placa = subSus.placa "
+  + "LEFT JOIN MantSuspension ms ON ms.IdMantSuspension = subSus.maxIdSus "
 
-    // filtro de aceite mas alto
-    "LEFT JOIN ( " +
-    "    SELECT placa, MAX(IdMantFAceite) AS maxIdFA " +
-    "    FROM MantFAceite " +
-    "    GROUP BY placa " +
-    ") subFA ON v.placa = subFA.placa " +
-    "LEFT JOIN MantFAceite mf ON mf.IdMantFAceite = subFA.maxIdFA " +
+  + "LEFT JOIN ( "
+  + "    SELECT placa, MAX(IdMantFAceite) AS maxIdFA "
+  + "    FROM MantFAceite "
+  + "    GROUP BY placa "
+  + ") subFA ON v.placa = subFA.placa "
+  + "LEFT JOIN MantFAceite mf ON mf.IdMantFAceite = subFA.maxIdFA "
 
-    // aceite
-    "LEFT JOIN ( " +
-    "    SELECT placa, MAX(IdMantAceite) AS maxIdAce " +
-    "    FROM MantAceite " +
-    "    GROUP BY placa " +
-    ") subAce ON v.placa = subAce.placa " +
-    "LEFT JOIN MantAceite ma ON ma.IdMantAceite = subAce.maxIdAce " +
+  + "LEFT JOIN ( "
+  + "    SELECT placa, MAX(IdMantAceite) AS maxIdAce "
+  + "    FROM MantAceite "
+  + "    GROUP BY placa "
+  + ") subAce ON v.placa = subAce.placa "
+  + "LEFT JOIN MantAceite ma ON ma.IdMantAceite = subAce.maxIdAce "
 
-    // motor...
-    "LEFT JOIN ( " +
-    "    SELECT placa, MAX(IdMantMotor) AS maxIdMotor " +
-    "    FROM MantMotor " +
-    "    GROUP BY placa " +
-    ") subMotor ON v.placa = subMotor.placa " +
-    "LEFT JOIN MantMotor mm ON mm.IdMantMotor = subMotor.maxIdMotor";
+  + "LEFT JOIN ( "
+  + "    SELECT placa, MAX(IdMantMotor) AS maxIdMotor "
+  + "    FROM MantMotor "
+  + "    GROUP BY placa "
+  + ") subMotor ON v.placa = subMotor.placa "
+  + "LEFT JOIN MantMotor mm ON mm.IdMantMotor = subMotor.maxIdMotor "
+
+  + "WHERE v.Borrado = 0";
 
             ps = con.prepareStatement(sql);
             rs = ps.executeQuery();
+
             Date hoy = new Date();
             while (rs.next()) {
                 String placa    = rs.getString("placa");
@@ -100,9 +100,11 @@ public class VehiculosServlet extends HttpServlet {
                 String detalles = rs.getString("detalles");
                 Date fechaFinSOAT = rs.getDate("FechaFinPagoSOAT");
                 Date fechaRevFin  = rs.getDate("FechaRevFin");
+
                 boolean soatVencido = (fechaFinSOAT != null && fechaFinSOAT.before(hoy));
                 boolean revVencido  = (fechaRevFin  != null && fechaRevFin.before(hoy));
                 String cardClass = (soatVencido || revVencido) ? "card-vencida" : "card_";
+
                 html.append("<div class='").append(cardClass).append("' ")
                     .append("onclick=\"mostrarVentana('").append(placa != null ? placa : "").append("')\">")
                     .append("<div class='card_2'>")

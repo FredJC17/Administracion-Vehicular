@@ -15,10 +15,6 @@ public class AgregarMantSuspensionServlet extends HttpServlet {
         String precioStr = request.getParameter("Precio");
         String fechaStr = request.getParameter("FechaCambioSus");
         String kmStr = request.getParameter("KMSus");
-        System.out.println("Servlet MantSuspension - placa: " + placa + 
-                           ", Precio: " + precioStr + 
-                           ", FechaCambioSus: " + fechaStr +
-                           ", KMSus: " + kmStr);
         double precio = 0.0;
         int kmSus = 0;
         try {
@@ -29,7 +25,6 @@ public class AgregarMantSuspensionServlet extends HttpServlet {
                 kmSus = Integer.parseInt(kmStr);
             }
         } catch (NumberFormatException ex) {
-            System.out.println("Error parseando números: " + ex.getMessage());
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parámetros numéricos inválidos");
             return;
         }
@@ -39,7 +34,6 @@ public class AgregarMantSuspensionServlet extends HttpServlet {
                 fechaCambioSus = java.sql.Date.valueOf(fechaStr); 
             }
         } catch (IllegalArgumentException ex) {
-            System.out.println("Error parseando fecha: " + ex.getMessage());
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Fecha inválida");
             return;
         }
@@ -56,7 +50,6 @@ public class AgregarMantSuspensionServlet extends HttpServlet {
             ps.setDate(3, fechaCambioSus);
             ps.setInt(4, kmSus);
             int rowsInserted = ps.executeUpdate();
-            System.out.println("Filas insertadas en MantSuspension: " + rowsInserted);
             response.sendRedirect("index.jsp");
         } catch (Exception e) {
             e.printStackTrace();

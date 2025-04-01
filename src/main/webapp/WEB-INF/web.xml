@@ -7,6 +7,14 @@
     <session-config>
         <session-timeout>30</session-timeout>
     </session-config>
+    <servlet>
+    <servlet-name>DatosServlet</servlet-name>
+    <servlet-class>DatosServlet</servlet-class>
+</servlet>
+<servlet-mapping>
+    <servlet-name>DatosServlet</servlet-name>
+    <url-pattern>/datos</url-pattern>
+</servlet-mapping>
 
     <!-- Aquí declaramos la página de bienvenida -->
     <welcome-file-list>

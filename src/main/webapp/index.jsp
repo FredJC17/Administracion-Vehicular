@@ -1,3 +1,4 @@
+<%@page import="java.util.Map"%>
 <%@page import="com.mycompany.mantenimientovehicular.ConexionDB"%>
 <%@page import="java.sql.Date"%>
 <%@page import="java.sql.DriverManager"%>
@@ -17,32 +18,10 @@
 <title>Mantenimiento Preventivo Vehicular</title>
 <style>
 body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: #969696;color: #333;}
-.header {
-  display: flex;               /* Activar flexbox */
-  align-items: center;         /* Centrar verticalmente */
-  justify-content: space-between; /* Espacio entre el texto y el botón */
-  background-color: #333;      /* Fondo oscuro */
-  color: #fff;                 /* Texto blanco */
-  padding: 1rem;
-  box-sizing: border-box;      /* Incluir padding en el ancho total */
-  width: 100%;                /* Asegurar que ocupe todo el ancho disponible */
-}
-
-/* Texto a la izquierda */
-.header .Agregar a {
-  color: #fff;
-  text-decoration: none;
-  font-size: 2rem;
-  cursor: pointer;
-  margin: 0;                  /* Eliminar márgenes por defecto */
-  padding: 0;                 /* Eliminar rellenos por defecto */
-}
-
-/* Eliminar márgenes y rellenos por defecto en todos los elementos del header */
-.header * {
-  margin: 0;
-  padding: 0;
-}
+.header {display: flex;align-items: center; justify-content: space-between;background-color: #333;color: #fff; padding: 1rem; box-sizing: border-box; width: 100%;}
+.header .Agregar a { color: #fff; text-decoration: none;font-size: 2rem;cursor: pointer;margin: 0;padding: 0;}
+.header .Agregar e { color: #fff;text-decoration: none;font-size: 2rem;margin: 0;padding: 0;}
+.header * { margin: 0;padding: 0;}
 .close {position: absolute;top: 20px;right: 20px;color: #00e5ff;float: right; background: transparent;border: none; font-size: 35px; font-weight: bold;cursor: pointer;}
 .close:hover,
 .close:focus {color: black;text-decoration: none; cursor: pointer;}
@@ -92,11 +71,8 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
 .btn-revision:hover::before {transform: scaleX(1);}
 .button-content { position: relative;z-index: 1;}
 .btn-revision::before {content: "";position: absolute; top: 0; left: 0;transform: scaleX(0);transform-origin: 0 50%; width: 100%;height: inherit;border-radius: inherit;background: linear-gradient(82.3deg,#0ef 10.8%,rgba(14, 239, 255, 0.7) 94.3% );transition: all 0.475s;}
-.modal-advertencia {display: none;  position: fixed; z-index: 100000;top: 50%; left: 50%;transform: translate(-50%, -50%);width: 90%;
- max-width: 750px;background-color: #222; color: #fff;border-radius: 10px;
- padding: 20px;text-align: center;transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;opacity: 0;}
-.modal-advertencia-content { padding: 15px;font-size: 18px; word-wrap: break-word; overflow-wrap: break-word;max-height: 
-                                400px;overflow-y: auto;box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2); }
+.modal-advertencia {display: none;  position: fixed; z-index: 100000;top: 50%; left: 50%;transform: translate(-50%, -50%);width: 90%;max-width: 750px;background-color: #222; color: #fff;border-radius: 10px;padding: 20px;text-align: center;transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;opacity: 0;}
+.modal-advertencia-content { padding: 15px;font-size: 18px; word-wrap: break-word; overflow-wrap: break-word;max-height: 400px;overflow-y: auto;box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2); }
 .modal-advertencia .close {position: absolute;top: 15px; right: 20px; font-size: 40px;cursor: pointer; color: #ff5e5e;transition: color 0.3s ease;}
 .modal-advertencia .close:hover { color: #ff2a2a;}
 .btn-cerrar { background-color: #ff5e5e; border: none;color: white;padding: 10px 20px; margin-top: 10px;font-size: 16px; border-radius: 5px;cursor: pointer;transition: background-color 0.3s ease;}
@@ -113,117 +89,32 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
 .sign svg { width: 24px;}
 .sign svg path {fill: white;}
 .text { position: absolute;right: 0%;  width: 0%; opacity: 0; color: white;font-size: 1.2em;font-weight: 600; transition-duration: 0.3s;}
-/* From Uiverse.io by cssbuttons-io */
-.btn-salir {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 20px;
-  background-color: #ff3636; /* Color rojo */
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
-  margin: 0; /* Eliminar margen */
-  box-sizing: border-box; /* Incluir padding en el ancho total */
-}
-
-.btn-salir .icon {
-  display: flex;
-  align-items: center;
-  margin-right: 8px; /* Espacio entre el ícono y el texto */
-}
-
-.btn-salir .icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.btn-salir:hover {
-  background-color: #cc2a2a; /* Color rojo más oscuro al hover */
-}
-.btn-cont {
-  display: flex;
-  justify-content: center;    /* Centra horizontalmente */
-  align-items: center;        /* Centra verticalmente */
-  flex-wrap: wrap;            /* Permite que pasen a la siguiente línea si no caben */
-  gap: 10px;                  /* Espacio entre elementos */
-  padding: 10px;
-}
-
-/* Botones con el diseño 'btn-admin' */
-.btn-admin {
-  cursor: pointer;
-  position: relative;
-  padding: 10px 24px;
-  font-size: 18px;
-  color: rgb(255, 65, 65);
-  border: 2px solid rgb(255, 65, 65);
-  border-radius: 34px;
-  background-color: #202020;
-  font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
-  overflow: hidden;
-  text-align: center;
-  display: inline-block;
-  white-space: nowrap;
-  min-width: 120px; /* Ancho mínimo */
-}
-
-.btn-admin::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 50px;
-  height: 50px;
-  border-radius: inherit;
-  scale: 0;
-  z-index: -1;
-  background-color: rgb(255, 65, 65);
-  transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
-}
-.btn-admin:hover::before {
-  scale: 3;
-}
-.btn-admin:hover {
-  color: #212121;
-  scale: 1.1;
-  box-shadow: 0 0px 20px rgba(193, 163, 98,0.4);
-}
-.btn-admin:active {
-  scale: 1;
-}
-
-/* Estilos para input y select con aspecto similar a .btn-admin */
-.input-admin, .select-admin {
-  font-size: 18px;
-  padding: 10px 20px;
-  border: 2px solid rgb(255,65,65);
-  border-radius: 34px;
-  background-color: #202020;
-  color: rgb(255, 65, 65);
-  font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
-  min-width: 120px;
-  outline: none;
-  margin-right: 5px; /* Pequeño espacio antes del botón */
-}
-.input-admin::placeholder {
-  color: rgba(255,65,65,0.5);
-}
+.btn-salir {display: flex;align-items: center;justify-content: center;padding: 10px 20px;background-color: #ff3636;border: none;border-radius: 5px;cursor: pointer;color: white;font-size: 16px;font-weight: 600;transition: background-color 0.3s ease;margin: 0;box-sizing: border-box;}
+.btn-salir .icon {display: flex;align-items: center;margin-right: 8px;}
+.btn-salir .icon svg {width: 20px;height: 20px;}
+.btn-salir:hover {background-color: #cc2a2a;}
+.btn-cont {display: flex;justify-content: center;align-items: center;flex-wrap: wrap;gap: 10px;padding: 10px;}
+.btn-admin {cursor: pointer;position: relative;padding: 10px 24px;font-size: 18px;color: rgb(255, 65, 65);border: 2px solid rgb(255, 65, 65); border-radius: 34px; background-color: #202020; font-weight: 600;transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);overflow: hidden;text-align: center;display: inline-block; white-space: nowrap;min-width: 120px;}
+.btn-admin::before {content: ''; position: absolute;inset: 0;margin: auto;width: 50px;height: 50px; border-radius: inherit; scale: 0;z-index: -1;background-color: rgb(255, 65, 65);transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);}
+.btn-admin:hover::before {scale: 3;}
+.btn-admin:hover {color: #212121; scale: 1.1; box-shadow: 0 0px 20px rgba(193, 163, 98,0.4);}
+.btn-admin:active {scale: 1;}
+.input-admin, .select-admin { font-size: 18px;padding: 10px 20px; border: 2px solid rgb(255,65,65);border-radius: 34px;background-color: #202020;color: rgb(255, 65, 65);font-weight: 600;transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); min-width: 120px;outline: none; margin-right: 5px;}
+.input-admin::placeholder {color: rgba(255,65,65,0.5);}
 .input-admin:focus,
-.select-admin:focus {
-  border-color: #fff;
-}
+.select-admin:focus { border-color: #fff;}
 </style>
 </head>
 <body>
-    
-    <!-- Modal de Advertencia de "SOAT" y "Revisión Técnica" -->
+    <%
+  String cargo = (String) session.getAttribute("cargo");
+  if (cargo == null) {
+    response.sendRedirect("ingreso.jsp");
+    return;
+  }
+%>
+
+    <!-- Modal de Advertencia de "SOAT" y "Rev. Técnica"  -->
     
 <div id="modal-advertencia" class="modal-advertencia">
     <div class="modal-advertencia-content">
@@ -234,14 +125,16 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
     </div>
 </div>
     
-    <!-- Encabezado -->
-    
     <!-- titulo -->
     
 <div class="header">
-  <div class="Agregar">
+   <div class="Agregar">
+<% if (!cargo.equals("Empleado")) { %>
     <a onclick="AgregarVehiculo()">Mantenimiento Preventivo Vehicular</a>
-  </div>
+<% } else { %>
+    <e style="font-weight: bold;">Mantenimiento Preventivo Vehicular</e>
+<% } %>
+</div>
 
   <button class="btn-salir" onclick="window.location.href='CerrarServlet'">
   <span class="icon">
@@ -255,7 +148,9 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
 </div>
 
     <div class="btn-cont">
+        
   <!-- Grupo Ordenar -->
+  
   <div>
     <select class="select-admin" id="selectOrdenar">
       <option value="Orden-alfabetico">Ordenar</option>
@@ -263,29 +158,27 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
       <option value="soat-lejano">SOAT lejano</option>
       <option value="revision-proxima">Revision proxima</option>
       <option value="revision-lejana">Revision lejana</option>
-      <option value="revision-proxima">Revision proxima</option>
       <option value="vehiculo-antiguo">Vehiculo antiguo</option>
       <option value="vehiculo-nuevo">Vehiculo nuevo</option>
     </select>
     <button class="btn-admin" onclick="ordenar()">ORDENAR</button>
   </div>
 
-  <!-- Grupo Buscar -->
+  <!--  Buscar -->
+  
   <div>
     <input type="text" class="input-admin" id="inputBuscar" placeholder="Escribe placa...">
     <button class="btn-admin" onclick="buscar()">BUSCAR</button>
   </div>
-
   
+  <!-- boton de usuario  -->
   
-  <!-- Botón extra de ejemplo -->
+<% if (cargo.equals("Desarrollador")) { %>
   <button class="btn-admin" onclick="window.location.href='usuarios.jsp'">USUARIOS</button>
-  
-  
-   
+<% } %>
 </div>
 
-    <!-- Modal para Agregar Vehiculos -->
+    <!-- Formularo para Agregar Vehiculos -->
     
     <div id="modal-agregar">
   <form action="AgregarVehiculoServlet" method="post">
@@ -371,16 +264,15 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
   </form>
 </div>
     
-    <!-- "Card´s" para los vehiculos de la base de datos -->
+    <!-- Cards para los carros  -->
     
 <div class="cards-container" id="vehiculos-container"></div>
 
-    <!-- "Sidebar" para los datos de los vehiculos  -->
+    <!-- Sidebar al presionar los vehiculos  -->
     
 <div id="ventanaModal" class="modal" style="display:none;">
   <div class="modal-contenido">
     <span class="close" onclick="cerrarVentana()">&times;</span>
-  
     <div class="contenedor-ventana">
       <div id="Propiedades" class="sidebar">
         <a onclick="mostrarDetalles()">Detalles</a>
@@ -392,6 +284,9 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
         <a onclick="mostrarMantenimientoMotor()">Mantenimiento de Motor</a>
         <a onclick="mostrarRepostaje()">Repostaje de Combustible</a>
         <a onclick="mostrarObservaciones()">Observaciones</a>
+        <% if (cargo.equals("Administrador") || cargo.equals("Desarrollador")) { %>
+        <a onclick="mostrarBorrar()">Borrar Vehiculo</a>
+        <% } %>
       </div>
       <div id="contenido-ventana" class="contenido-ventana">
         <h1 id="titulo-seccion"></h1>
@@ -505,7 +400,9 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
 <div id="seccion-revision" class="seccion" style="display:none;">
   <h1>Revisiones</h1>
   <div id="contenedorRevisiones"></div>
+  <% if (cargo.equals("Administrador") || cargo.equals("Desarrollador")) { %>
   <button onclick="agregarRevision()" type="button" class="enter">AGREGAR</button>
+<% } %>
   <div id="modalAgregarRevision" class="modal" style="display:none;">
     <form id="formAgregarRevision" action="AgregarRevisionServlet"
           method="post" enctype="multipart/form-data">
@@ -531,7 +428,9 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
 <div id="seccion-SOAT" class="seccion" style="display:none;">
           <h1>SOAT</h1>
           <div id="contenedorSOAT"></div>
+          <% if (cargo.equals("Administrador") || cargo.equals("Desarrollador")) { %>
           <button type="button" class="enter" onclick="agregarSOAT()">AGREGAR</button>
+          <% } %>
           <div id="modalAgregarSOAT" class="modal" style="display:none">
           <form id="formAgregarSOAT" action="AgregarSoatServlet" 
                  method="post" enctype="multipart/form-data">
@@ -567,7 +466,9 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
 <div id="seccion-aceite" class="seccion" style="display:none;">
             <h1>Mantenimiento de Aceite</h1>
          <div id="contenedorAceite"></div>
-           <button type="button" class="enter" onclick="agregarMantenimientoAceite()">AGREGAR</button>
+         <% if (cargo.equals("Administrador") || cargo.equals("Desarrollador")) { %>
+          <button type="button" class="enter" onclick="agregarMantenimientoAceite()">AGREGAR</button>
+          <% } %>
          <div id="modalAgregarMantenimientoAceite" class="modal" style="display:none;">
            <form action="AgregarMantenimientoAceiteServlet" method="post">
          <div class="modal-contenido">
@@ -582,7 +483,7 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
           <label><span>Cantidad de Aceite</span></label>
         </div>
         <div class="form-control">
-          <input type="date" name="FechaCambioAceite" required>
+          <input type="date" name="FechaCambioAceite" >
           <label><span>Fecha Cambio Aceite</span></label>
         </div>
         <div class="form-control">
@@ -600,7 +501,9 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
 <div id="seccion-filtro" class="seccion" style="display:none;">
            <h1>Mantenimiento de Filtro de Aceite</h1>
           <div id="contenedorFiltro"></div>
+          <% if (cargo.equals("Administrador") || cargo.equals("Desarrollador")) { %>
            <button type="button" class="enter" onclick="agregarMantenimientoFiltro()">AGREGAR</button>
+          <% } %>
           </div>
           <div id="modalAgregarMantenimientoFAceite" class="modal" style="display:none;">
               <form action="AgregarMantFAceiteServlet" method="post">
@@ -612,7 +515,7 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
             <label><span>Precio Filtro Aceite</span></label>
           </div>
           <div class="form-control">
-            <input type="date" name="FechaCambioFA" required>
+            <input type="date" name="FechaCambioFA" >
             <label><span>Fecha Cambio Filtro Aceite</span></label>
           </div>
           <div class="form-control">
@@ -629,7 +532,9 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
 <div id="seccion-suspension" class="seccion" style="display:none;">
           <h1>Mantenimiento de Suspensión</h1>
          <div id="contenedorSuspension"></div>
-          <button type="button" class="enter" onclick="agregarMantenimientoSuspension()">AGREGAR</button>
+         <% if (cargo.equals("Administrador") || cargo.equals("Desarrollador")) { %>
+           <button type="button" class="enter" onclick="agregarMantenimientoSuspension()">AGREGAR</button>
+          <% } %>
          </div>
          <div id="modalAgregarMantenimientoSuspension" class="modal" style="display:none;">
             <form action="AgregarMantSuspensionServlet" method="post">
@@ -641,7 +546,7 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
            <label><span>Precio</span></label>
          </div>
          <div class="form-control">
-          <input type="date" name="FechaCambioSus" required>
+          <input type="date" name="FechaCambioSus" >
           <label><span>Fecha Cambio Suspensión</span></label>
         </div>
        <div class="form-control">
@@ -658,7 +563,9 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
 <div id="seccion-motor" class="seccion" style="display:none;">
            <h1>Mantenimiento de Motor</h1>
            <div id="contenedorMotor"></div>
+           <% if (cargo.equals("Administrador") || cargo.equals("Desarrollador")) { %>
            <button type="button" class="enter" onclick="agregarMantenimientoMotor()">AGREGAR</button>
+          <% } %>
            </div>
            <div id="modalAgregarMantenimientoMotor" class="modal" style="display:none;">
            <form action="AgregarMantMotorServlet" method="post">
@@ -670,7 +577,7 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
            <label><span>Precio</span></label>
        </div>
        <div class="form-control">
-           <input type="date" name="FechaMotor" required>
+           <input type="date" name="FechaMotor" >
            <label><span>Fecha Motor</span></label>
        </div>
        <div class="form-control">
@@ -687,7 +594,9 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
 <div id="seccion-repostaje" class="seccion" style="display:none;">
           <h1>Repostaje de Combustible</h1>
           <div id="contenedorRepostaje"></div>
+          <% if (cargo.equals("Administrador") || cargo.equals("Desarrollador")) { %>
           <button type="button" class="enter" onclick="agregarCombustible()">AGREGAR</button>
+          <% } %>
           </div>
         <div id="modalAgregarCombustible" class="modal" style="display:none;">
         <div class="modal-contenido">
@@ -703,7 +612,7 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
            <label><span>Precio Combustible</span></label>
       </div>
       <div class="form-control">
-           <input type="date" name="FechaPagoComb" required>
+           <input type="date" name="FechaPagoComb" >
            <label><span>Fecha Pago Combustible</span></label>
       </div>
       <div class="form-control">
@@ -724,12 +633,16 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
             </div>
         </div>
         
+
+
         <!-- seccion-observaciones aqui se pueden adjuntar observaciones del vehiculo -->
-        
+    
 <div id="seccion-observaciones" class="seccion" style="display:none;">
           <h1>Observaciones</h1>
          <div id="contenedorObservaciones"></div>
+         <% if (cargo.equals("Administrador") || cargo.equals("Desarrollador")) { %>
           <button type="button" class="enter" onclick="agregarObservacion()">AGREGAR</button>
+          <% } %>
          <div id="modalAgregarObservacion" class="modal" style="display:none;">
            <form id="formAgregarObservacion" action="AgregarObservacionServlet" method="post">
          <div class="modal-contenido">
@@ -748,6 +661,16 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
               </div>
            </div>
        </div>
+         <div id="modalConfirmarBorrar" class="modal" style="display:none;">
+  <div class="modal-contenido" style="max-width: 400px;">
+    <span class="close" onclick="cerrarModalConfirmarBorrar()">&times;</span>
+    <h2>¿Seguro que deseas borrar este vehículo?</h2>
+    <div style="margin-top: 1rem;">
+      <button class="btn-admin" onclick="borrarVehiculo()">Sí, borrar</button>
+      <button class="btn-admin" onclick="cerrarModalConfirmarBorrar()">Cancelar</button>
+    </div>
+  </div>
+</div>
 <script>
   let placaActual = "";
   let vehiculoData = null;
@@ -790,6 +713,24 @@ document.addEventListener("DOMContentLoaded", function() {
         })
         .catch(error => console.error("Error al cargar los vehículos:", error));
 });
+function ordenar() {
+  const criterio = document.getElementById("selectOrdenar").value;
+  fetch("OrdenarServlet?criterio=" + encodeURIComponent(criterio))
+    .then(resp => resp.text())
+    .then(html => {
+      document.getElementById("vehiculos-container").innerHTML = html;
+    })
+    .catch(err => console.error("Error al ordenar:", err));
+}
+function buscar() {
+  const placa = document.getElementById("inputBuscar").value.trim();
+  fetch("BuscarServlet?placa=" + encodeURIComponent(placa))
+    .then(resp => resp.text())
+    .then(html => {
+      document.getElementById("vehiculos-container").innerHTML = html;
+    })
+    .catch(err => console.error("Error al buscar:", err));
+}
 function ocultarSecciones() {
     const secciones = document.getElementsByClassName("seccion");
     for (let i = 0; i < secciones.length; i++) {
@@ -1153,7 +1094,7 @@ function actualizarFormularioMantenimientoAceite(listaAceite) {
     );
     divContenido.appendChild(pFecha);
     const pKM = document.createElement("p");
-    pKM.textContent = "KM Aceite: " + (
+    pKM.textContent = "KM Aceite: " + ( 
       mant.KMAceite !== undefined ? mant.KMAceite : "N/A"
     );
     divContenido.appendChild(pKM);
@@ -1444,6 +1385,26 @@ function AgregarVehiculo() {
 }
 function cerrarModalAgregar() {
     document.getElementById("modal-agregar").style.display = "none";
+}
+function mostrarBorrar() {
+  if (!placaActual) {
+    console.error("No hay placa seleccionada.");
+    return;
+  }
+  document.getElementById("modalConfirmarBorrar").style.display = "flex";
+}
+function cerrarModalConfirmarBorrar() {
+  document.getElementById("modalConfirmarBorrar").style.display = "none";
+}
+function borrarVehiculo() {
+  fetch("BorrarVehiculoServlet?placa=" + encodeURIComponent(placaActual))
+    .then(resp => resp.text())
+    .then(msg => {
+      alert(msg);
+      cerrarModalConfirmarBorrar();
+      cerrarVentana();
+    })
+    .catch(err => console.error("Error al borrar vehículo:", err));
 }
 </script>
 </body>

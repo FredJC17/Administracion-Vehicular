@@ -29,26 +29,37 @@ public class AdvertenciasMantenimientoServlet extends HttpServlet {
     
     private String obtenerAdvertenciasMantenimiento() {
         String mensajeAlerta = "";
-
+       
         try (Connection conn = ConexionDB.getConexion()) {
-            String sql = "SELECT 'SOAT' AS tipo, v.Placa, v.Marca, v.Modelo, s.FechaFinPagoSOAT AS FechaFin, " +
-                         "DATEDIFF(DAY, GETDATE(), s.FechaFinPagoSOAT) AS DiasRestantes " +
-                         "FROM Vehiculos v " +
-                         "JOIN SOAT s ON v.Placa = s.Placa " +
-                         "WHERE DATEDIFF(DAY, GETDATE(), s.FechaFinPagoSOAT) IN (1,2,3,4,5,6,7,15,30,60) " +
-                         "   OR DATEDIFF(DAY, GETDATE(), s.FechaFinPagoSOAT) <= 0 " +
-                         
-                         "UNION ALL " +
+            String sql =
+    "SELECT 'SOAT' AS tipo, v.Placa, v.Marca, v.Modelo, s.FechaFinPagoSOAT AS FechaFin, "
+  + "DATEDIFF(DAY, GETDATE(), s.FechaFinPagoSOAT) AS DiasRestantes "
+  + "FROM Vehiculos v "
+  + "JOIN ( "
+  + "    SELECT placa, MAX(IdSOAT) AS maxIdSoat "
+  + "    FROM SOAT "
+  + "    GROUP BY placa "
+  + ") subSoat ON v.Placa = subSoat.Placa "
+  + "JOIN SOAT s ON s.IdSOAT = subSoat.maxIdSoat "
+  + "WHERE DATEDIFF(DAY, GETDATE(), s.FechaFinPagoSOAT) IN (1,2,3,4,5,6,7,15,30,60) "
+  + "   OR DATEDIFF(DAY, GETDATE(), s.FechaFinPagoSOAT) <= 0 "
 
-                         "SELECT 'REVISION' AS tipo, v.Placa, v.Marca, v.Modelo, r.FechaRevFin AS FechaFin, " +
-                         "DATEDIFF(DAY, GETDATE(), r.FechaRevFin) AS DiasRestantes " +
-                         "FROM Vehiculos v " +
-                         "JOIN RevisionTecnica r ON v.Placa = r.Placa " +
-                         "WHERE DATEDIFF(DAY, GETDATE(), r.FechaRevFin) IN (1,2,3,4,5,6,7,15,30,60) " +
-                         "   OR DATEDIFF(DAY, GETDATE(), r.FechaRevFin) <= 0 " +
-                         
-                         "ORDER BY DiasRestantes ASC";
+  + "UNION ALL "
 
+  + "SELECT 'REVISION' AS tipo, v.Placa, v.Marca, v.Modelo, r.FechaRevFin AS FechaFin, "
+  + "DATEDIFF(DAY, GETDATE(), r.FechaRevFin) AS DiasRestantes "
+  + "FROM Vehiculos v "
+  + "JOIN ( "
+  + "    SELECT placa, MAX(IdRevision) AS maxIdRevision "
+  + "    FROM RevisionTecnica "
+  + "    GROUP BY placa "
+  + ") subRev ON v.Placa = subRev.Placa "
+  + "JOIN RevisionTecnica r ON r.IdRevision = subRev.maxIdRevision "
+  + "WHERE DATEDIFF(DAY, GETDATE(), r.FechaRevFin) IN (1,2,3,4,5,6,7,15,30,60) "
+  + "   OR DATEDIFF(DAY, GETDATE(), r.FechaRevFin) <= 0 "
+
+  + "ORDER BY DiasRestantes ASC";
+            
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
 
