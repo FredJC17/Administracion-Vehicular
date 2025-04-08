@@ -22,7 +22,6 @@ public class BuscarServlet extends HttpServlet {
 
         String placaParam = request.getParameter("placa");
         if (placaParam == null || placaParam.trim().isEmpty()) {
-            // Si no ingresan placa, podríamos devolver vacío o todo
             out.write("<p>No se ingresó placa</p>");
             return;
         }
@@ -36,8 +35,7 @@ public class BuscarServlet extends HttpServlet {
         try {
             con = ConexionDB.getConexion();
 
-            // Semejante a VehiculoServlet, pero con "WHERE v.placa LIKE ?"
-            // o "=" si quieres coincidencia exacta
+            // Se añade la condición v.Borrado = 0 para solo incluir vehículos activos
             String sql =
     "SELECT v.placa, v.marca, v.modelo, v.color, v.detalles, " +
     "       s.FechaFinPagoSOAT, r.FechaRevFin, " +
@@ -47,61 +45,53 @@ public class BuscarServlet extends HttpServlet {
     "       ma.FechaCambioAceite, ma.PrecioAceite, ma.KMAceite, " +
     "       mm.FechaMotor, mm.Precio AS PrecioMotor, mm.Kilometraje " +
     "FROM Vehiculos v " +
-
-    // Subconsultas
     "LEFT JOIN ( " +
     "    SELECT placa, MAX(IdSOAT) AS maxIdSoat " +
     "    FROM SOAT " +
     "    GROUP BY placa " +
     ") subSoat ON v.Placa = subSoat.placa " +
     "LEFT JOIN SOAT s ON s.IdSOAT = subSoat.maxIdSoat " +
-
     "LEFT JOIN ( " +
     "    SELECT placa, MAX(IdRevision) AS maxIdRevision " +
     "    FROM RevisionTecnica " +
     "    GROUP BY placa " +
-    ") subRev ON v.placa = subRev.placa " +
+    ") subRev ON v.Placa = subRev.placa " +
     "LEFT JOIN RevisionTecnica r ON r.IdRevision = subRev.maxIdRevision " +
-
     "LEFT JOIN ( " +
     "    SELECT placa, MAX(IdCombustible) AS maxIdComb " +
     "    FROM Combustible " +
     "    GROUP BY placa " +
-    ") subComb ON v.placa = subComb.placa " +
+    ") subComb ON v.Placa = subComb.placa " +
     "LEFT JOIN Combustible c ON c.IdCombustible = subComb.maxIdComb " +
-
     "LEFT JOIN ( " +
     "    SELECT placa, MAX(IdMantSuspension) AS maxIdSus " +
     "    FROM MantSuspension " +
     "    GROUP BY placa " +
-    ") subSus ON v.placa = subSus.placa " +
+    ") subSus ON v.Placa = subSus.placa " +
     "LEFT JOIN MantSuspension ms ON ms.IdMantSuspension = subSus.maxIdSus " +
-
     "LEFT JOIN ( " +
     "    SELECT placa, MAX(IdMantFAceite) AS maxIdFA " +
     "    FROM MantFAceite " +
     "    GROUP BY placa " +
-    ") subFA ON v.placa = subFA.placa " +
+    ") subFA ON v.Placa = subFA.placa " +
     "LEFT JOIN MantFAceite mf ON mf.IdMantFAceite = subFA.maxIdFA " +
-
     "LEFT JOIN ( " +
     "    SELECT placa, MAX(IdMantAceite) AS maxIdAce " +
     "    FROM MantAceite " +
     "    GROUP BY placa " +
-    ") subAce ON v.placa = subAce.placa " +
+    ") subAce ON v.Placa = subAce.placa " +
     "LEFT JOIN MantAceite ma ON ma.IdMantAceite = subAce.maxIdAce " +
-
     "LEFT JOIN ( " +
     "    SELECT placa, MAX(IdMantMotor) AS maxIdMotor " +
     "    FROM MantMotor " +
     "    GROUP BY placa " +
-    ") subMotor ON v.placa = subMotor.placa " +
+    ") subMotor ON v.Placa = subMotor.placa " +
     "LEFT JOIN MantMotor mm ON mm.IdMantMotor = subMotor.maxIdMotor " +
-    // Filtramos la placa
-    "WHERE v.Placa LIKE ?"; // O = ? si quieres coincidencia exacta
+    // Solo vehículos activos (Borrado = 0) y con placa que contenga el parámetro
+    "WHERE v.Borrado = 0 AND v.Placa LIKE ?";
 
             ps = con.prepareStatement(sql);
-            ps.setString(1, "%" + placaParam + "%"); // para coincidencia parcial
+            ps.setString(1, "%" + placaParam + "%");
             rs = ps.executeQuery();
 
             Date hoy = new Date();
@@ -137,8 +127,7 @@ public class BuscarServlet extends HttpServlet {
                     .append("</div></div>");
             }
             if (!found) {
-                // Si no hay resultados
-                html.append("<p>No se encontró ningún vehículo con placa: ").append(placaParam).append(". Recuerda colocar ( - ) si es necesario</p>");
+                html.append("<p>No se encontró ningún vehículo con placa: ").append(placaParam).append(".</p>");
             }
         } catch (Exception e) {
             html.append("<p>Error: ").append(e.getMessage()).append("</p>");
@@ -146,7 +135,7 @@ public class BuscarServlet extends HttpServlet {
         } finally {
             if (rs != null) try { rs.close(); } catch (Exception ex) {}
             if (ps != null) try { ps.close(); } catch (Exception ex) {}
-            if (con != null) try { con.close(); } catch (Exception ex) {}
+            // Asumir que 'con' es cerrado dentro de ConexionDB o similar
         }
 
         html.append("</div>");

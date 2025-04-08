@@ -106,13 +106,18 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
 </style>
 </head>
 <body>
-    <%
+<%
   String cargo = (String) session.getAttribute("cargo");
   if (cargo == null) {
     response.sendRedirect("ingreso.jsp");
     return;
   }
 %>
+<script>
+  // Variable global para usar en JS
+  var usuarioCargo = '<%= cargo %>';
+  console.log("Cargo del usuario: " + usuarioCargo);
+</script>
 
     <!-- Modal de Advertencia de "SOAT" y "Rev. Técnica"  -->
     
@@ -149,7 +154,7 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
 
     <div class="btn-cont">
         
-  <!-- Grupo Ordenar -->
+  <!-- Grupo Ordenar.. -->
   
   <div>
     <select class="select-admin" id="selectOrdenar">
@@ -163,22 +168,26 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
     </select>
     <button class="btn-admin" onclick="ordenar()">ORDENAR</button>
   </div>
+  
+<% if (cargo.equals("Administrador") || cargo.equals("Desarrollador")) { %>
+  <button class="btn-admin" onclick="window.location.href='vehiculos.jsp'">VEHICULOS</button>
+<% } %>
 
-  <!--  Buscar -->
+  <!--  Buscar.. -->
   
   <div>
     <input type="text" class="input-admin" id="inputBuscar" placeholder="Escribe placa...">
     <button class="btn-admin" onclick="buscar()">BUSCAR</button>
   </div>
   
-  <!-- boton de usuario  -->
+  <!-- boton de usuario...  -->
   
 <% if (cargo.equals("Desarrollador")) { %>
   <button class="btn-admin" onclick="window.location.href='usuarios.jsp'">USUARIOS</button>
 <% } %>
 </div>
 
-    <!-- Formularo para Agregar Vehiculos -->
+<!-- Formularo para Agregar Vehiculos -->
     
     <div id="modal-agregar">
   <form action="AgregarVehiculoServlet" method="post">
@@ -422,7 +431,25 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
     </form>
   </div>
 </div>
-        
+        <div id="modalEditarRevision" class="modal" style="display:none;">
+  <div class="modal-contenido">
+    <span class="close" onclick="cerrarModalEditarRevision()">&times;</span>
+    <form action="EditarRevisionServlet" method="post" enctype="multipart/form-data">
+      <!-- Campo oculto para el ID de la revisión -->
+      <input type="hidden" name="idRevision" id="idRevisionEditar">
+      <div class="form-control">
+         <input type="date" name="FechaRev" id="fechaRevEditar" required>
+         <label><span>Fecha de Revisión</span></label>
+      </div>
+      <div class="form-control">
+         <input type="file" name="comprobanteRT" id="comprobanteRTEditar" accept=".pdf,image/*">
+         <label><span>Comprobante de Revisión Técnica</span></label>
+      </div>
+      <button type="submit" class="enter">Actualizar Revisión</button>
+    </form>
+  </div>
+</div>
+
         <!-- seccion-SOAT administracion del "SOAT" del vehiculo seleccionado -->
 
 <div id="seccion-SOAT" class="seccion" style="display:none;">
@@ -460,7 +487,28 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
             </form>  
            </div>
           </div>
-        
+          <div id="modalEditarSoat" class="modal" style="display:none;">
+  <div class="modal-contenido"> 
+    <span class="close" onclick="cerrarModalEditarSoat()">&times;</span>
+    <form action="EditarSoatServlet" method="post" enctype="multipart/form-data">
+      <input type="hidden" name="idSoat" id="idSoatEditar">
+      <div class="form-control">
+         <input type="date" name="FechaPagoSOAT" id="fechaSoatEditar" required>
+         <label><span>Fecha de Pago SOAT</span></label>
+      </div>
+      <div class="form-control">
+         <input type="file" name="ComprobanteSOAT" id="comprobanteSoatEditar" accept=".pdf,image/*">
+         <label><span>Comprobante SOAT</span></label>
+      </div>
+      <div class="form-control">
+         <input type="number" step="any" name="MontoPagoSOAT" id="montoSoatEditar" required>
+         <label><span>Monto Pago SOAT</span></label>
+      </div>
+      <button type="submit" class="enter">Actualizar SOAT</button>
+    </form>
+  </div>
+</div>
+
         <!-- Seccion-Aceite para administrar los aceites -->
         
 <div id="seccion-aceite" class="seccion" style="display:none;">
@@ -495,7 +543,32 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
            </form>
          </div>
       </div>
-        
+         <div id="modalEditarAceite" class="modal" style="display:none;">
+  <div class="modal-contenido">
+    <span class="close" onclick="cerrarModalEditarAceite()">&times;</span>
+    <form action="EditarMantAceiteServlet" method="post">
+      <input type="hidden" name="idMantAceite" id="idMantAceiteEditar">
+      <div class="form-control">
+         <input type="number" step="any" name="PrecioAceite" id="precioAceiteEditar" required>
+         <label><span>Precio Aceite</span></label>
+      </div>
+      <div class="form-control">
+         <input type="number" step="any" name="CantAceite" id="cantAceiteEditar" required>
+         <label><span>Cantidad de Aceite</span></label>
+      </div>
+      <div class="form-control">
+         <input type="date" name="FechaCambioAceite" id="fechaCambioAceiteEditar" required>
+         <label><span>Fecha Cambio Aceite</span></label>
+      </div>
+      <div class="form-control">
+         <input type="number" name="KMAceite" id="kmAceiteEditar" required>
+         <label><span>KM Aceite</span></label>
+      </div>
+      <button type="submit" class="enter">Actualizar Mantenimiento Aceite</button>
+    </form>
+  </div>
+</div>
+
         <!-- seccion-filtro administra el filtro de aceite del vehiculo seelcionado -->
         
 <div id="seccion-filtro" class="seccion" style="display:none;">
@@ -526,9 +599,30 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
               </div>
             </form>
           </div>
-        
+          <div id="modalEditarFAceite" class="modal" style="display:none;">
+  <div class="modal-contenido">
+    <span class="close" onclick="cerrarModalEditarFAceite()">&times;</span>
+    <form action="EditarMantFAceiteServlet" method="post">
+      <input type="hidden" name="idMantFAceite" id="idMantFAceiteEditar">
+      <div class="form-control">
+         <input type="number" step="any" name="PrecioFAceite" id="precioFAceiteEditar" required>
+         <label><span>Precio Filtro Aceite</span></label>
+      </div>
+      <div class="form-control">
+         <input type="date" name="FechaCambioFA" id="fechaCambioFAEditar">
+         <label><span>Fecha Cambio Filtro Aceite</span></label>
+      </div>
+      <div class="form-control">
+         <input type="number" name="KMFA" id="kmFAEditar" required>
+         <label><span>KM Filtro Aceite</span></label>
+      </div>
+      <button type="submit" class="enter">Actualizar Mantenimiento Filtro Aceite</button>
+    </form>
+  </div>
+</div>
+    
         <!--  seccion-suspension esta administra la suspension del vehiculo -->
-        
+         
 <div id="seccion-suspension" class="seccion" style="display:none;">
           <h1>Mantenimiento de Suspensión</h1>
          <div id="contenedorSuspension"></div>
@@ -557,6 +651,28 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
            </div>
          </form>
       </div>
+          <div id="modalEditarSuspension" class="modal" style="display:none;">
+       <form action="EditarMantSuspensionServlet" method="post">
+         <div class="modal-contenido">
+             <span class="close" onclick="cerrarModalEditarSuspension()">&times;</span>
+        <input type="hidden" name="idMantSuspension" id="idMantSuspensionEditar">
+        <input type="hidden" name="placa" id="placaSuspensionEditar">
+      <div class="form-control">
+         <input type="number" step="any" name="Precio" id="precioSuspensionEditar" required>
+         <label><span>Precio</span></label>
+      </div>
+      <div class="form-control">
+         <input type="date" name="FechaCambioSus" id="fechaSuspensionEditar" required>
+         <label><span>Fecha Cambio Suspensión</span></label>
+      </div>
+      <div class="form-control">
+         <input type="number" name="KMSus" id="kmSuspensionEditar" required>
+         <label><span>KM Suspensión</span></label>
+      </div>
+      <button type="submit" class="enter">Actualizar Mantenimiento Suspensión</button>
+    </div>
+  </form>
+</div>
         
         <!-- seccion-motor administra el mantenimiento del motor -->
         
@@ -588,9 +704,32 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
                 </div>
              </form>
           </div>
-        
+                   
+       <div id="modalEditarMantenimientoMotor" class="modal" style="display:none;">
+  <form action="EditarMantMotorServlet" method="post">
+    <div class="modal-contenido">
+      <span class="close" onclick="cerrarModalEditarMantenimientoMotor()">&times;</span>
+      <input type="hidden" name="idMantMotor" id="idMantMotorEditar">
+      <input type="hidden" name="placa" id="placaMantenimientoMotorEditar">
+      <div class="form-control">
+         <input type="number" step="any" name="Precio" id="precioMantenimientoMotorEditar" required>
+         <label><span>Precio</span></label>
+      </div>
+      <div class="form-control">
+         <input type="date" name="FechaMotor" id="fechaMantenimientoMotorEditar">
+         <label><span>Fecha Motor</span></label>
+      </div>
+      <div class="form-control">
+         <input type="number" name="Kilometraje" id="kilometrajeMantenimientoMotorEditar" required>
+         <label><span>Kilometraje</span></label>
+      </div>
+      <button type="submit" class="enter">Actualizar Mantenimiento Motor</button>
+    </div>
+  </form>
+</div>
+
         <!-- seccion-repostaje administra el repostaje al vehiculo -->
-        
+
 <div id="seccion-repostaje" class="seccion" style="display:none;">
           <h1>Repostaje de Combustible</h1>
           <div id="contenedorRepostaje"></div>
@@ -632,8 +771,40 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
               </form>
             </div>
         </div>
-        
-
+        <div id="modalEditarCombustible" class="modal" style="display:none;">
+         <div class="modal-contenido">
+         <span class="close" onclick="cerrarModalEditarCombustible()">&times;</span>
+         <form action="EditarCombustibleServlet" method="post">
+        <input type="hidden" name="idCombustible" id="idCombustibleEditar">
+        <div class="form-control">
+         <input type="number" step="any" name="Galones" id="galonesEditar" required>
+         <label><span>Galones</span></label>
+       </div>
+       <div class="form-control">
+         <input type="number" step="any" name="PrecioComb" id="precioCombEditar" required>
+         <label><span>Precio Combustible</span></label>
+       </div>
+       <div class="form-control">
+         <input type="date" name="FechaPagoComb" id="fechaPagoCombEditar">
+         <label><span>Fecha Pago Combustible</span></label>
+        </div>
+        <div class="form-control">
+         <select name="TipoCombustible" id="tipoCombustibleEditar" required>
+            <option value="">-- Seleccionar Tipo de Combustible --</option>
+            <option value="Diesel">Diesel</option>
+            <option value="Gas Licuado de Petroleo">Gas Licuado de Petroleo</option>
+            <option value="Gasolina">Gasolina</option>
+         </select>
+         <label><span>Tipo de Combustible</span></label>
+        </div>
+        <div class="form-control">
+         <input type="number" name="KMComb" id="kmCombEditar" required>
+         <label><span>KM Comb</span></label>
+      </div>
+      <button type="submit" class="enter">Actualizar Repostaje</button>
+    </form>
+  </div>
+</div>
 
         <!-- seccion-observaciones aqui se pueden adjuntar observaciones del vehiculo -->
     
@@ -661,7 +832,24 @@ body {font-family: 'Arial', sans-serif;margin: 0;  padding: 0;background-color: 
               </div>
            </div>
        </div>
-         <div id="modalConfirmarBorrar" class="modal" style="display:none;">
+         <div id="modalEditarObservacion" class="modal" style="display:none;">
+  <div class="modal-contenido">
+    <span class="close" onclick="cerrarModalEditarObservacion()">&times;</span>
+    <h2>Editar Observación</h2>
+    <form action="EditarObservacionServlet" method="post">
+      <!-- Campo oculto para el ID de la observación -->
+      <input type="hidden" name="idObservacion" id="idObservacionEditar">
+      
+      <div class="form-control">
+         <textarea name="comentario" id="comentarioEditar" required></textarea>
+         <label><span>Comentario</span></label>
+      </div>
+      
+      <button type="submit" class="enter">Actualizar Observación</button>
+    </form>
+  </div>
+</div>
+<div id="modalConfirmarBorrar" class="modal" style="display:none;">
   <div class="modal-contenido" style="max-width: 400px;">
     <span class="close" onclick="cerrarModalConfirmarBorrar()">&times;</span>
     <h2>¿Seguro que deseas borrar este vehículo?</h2>
@@ -831,57 +1019,71 @@ function mostrarRevision() {
     .catch(error => {
       console.error('Error al obtener las revisiones:', error);
     });
-  }
+}
 function actualizarFormularioRevision(listaRevisiones) {
-    const contenedor = document.getElementById("contenedorRevisiones");
-    contenedor.innerHTML = "";
-    listaRevisiones.forEach(revision => {
-        const divRevision = document.createElement("div");
-        divRevision.style.marginBottom = "1rem";
-        const btn = document.createElement("button");
-        btn.className = "btn-revision";
-        const btnContent = document.createElement("span");
-        btnContent.className = "button-content";
-        const idRev = (revision.IdRevision !== undefined) ? revision.IdRevision : "N/A";
-        btnContent.textContent = "Revisión " + idRev;
-        btn.appendChild(btnContent);
-        btn.onclick = function() {
-            const contenido = this.nextElementSibling;
-            contenido.style.display = (contenido.style.display === "block") ? "none" : "block";
-        };
-        const divContenido = document.createElement("div");
-        divContenido.style.display = "none";
-        divContenido.style.border = "1px solid #ccc";
-        divContenido.style.padding = "0.5rem";
-        divContenido.style.borderRadius = "0.5rem";
-        divContenido.style.marginTop = "0.5rem";
-        const pFechaRev = document.createElement("p");
-        pFechaRev.textContent = "Fecha de Revisión: " + (
-            revision.FechaRev !== undefined ? revision.FechaRev : "N/A"
-        );
-        const pFechaRevFin = document.createElement("p");
-        pFechaRevFin.textContent = "Fecha Revisión Fin: " + (
-            revision.FechaRevFin !== undefined ? revision.FechaRevFin : "N/A"
-        );
-        const pComprobante = document.createElement("p");
-        if (idRev !== "N/A") {
-            pComprobante.innerHTML = "Comprobante: <a href='DownloadComprobanteServlet?id=" 
-                                      + idRev + "' target='_blank'>Descargar</a>";
-        } else {
-            pComprobante.textContent = "Comprobante: N/A";
-        }
-        divContenido.appendChild(pFechaRev);
-        divContenido.appendChild(pFechaRevFin);
-        divContenido.appendChild(pComprobante);
-        divRevision.appendChild(btn);
-        divRevision.appendChild(divContenido);
-        contenedor.appendChild(divRevision);
-    });
+  const contenedor = document.getElementById("contenedorRevisiones");
+  contenedor.innerHTML = "";
+  listaRevisiones.forEach(revision => {
+    const divRevision = document.createElement("div");
+    divRevision.style.marginBottom = "1rem";
+    const btnToggle = document.createElement("button");
+    btnToggle.className = "btn-revision";
+    const btnContent = document.createElement("span");
+    btnContent.className = "button-content";
+    const idRev = (revision.IdRevision !== undefined) ? revision.IdRevision : "N/A";
+    btnContent.textContent = "Revisión " + idRev;
+    btnToggle.appendChild(btnContent);
+    btnToggle.onclick = function() {
+      const contenido = this.nextElementSibling;
+      contenido.style.display = (contenido.style.display === "block") ? "none" : "block";
+    };
+    divRevision.appendChild(btnToggle);
+    const divContenido = document.createElement("div");
+    divContenido.style.display = "none";
+    divContenido.style.border = "1px solid #ccc";
+    divContenido.style.padding = "0.5rem";
+    divContenido.style.borderRadius = "0.5rem";
+    divContenido.style.marginTop = "0.5rem";
+    const pFechaRev = document.createElement("p");
+    pFechaRev.textContent = "Fecha de Revisión: " + (revision.FechaRev !== undefined ? revision.FechaRev : "N/A");
+    divContenido.appendChild(pFechaRev);
+    const pFechaRevFin = document.createElement("p");
+    pFechaRevFin.textContent = "Fecha Revisión Fin: " + (revision.FechaRevFin !== undefined ? revision.FechaRevFin : "N/A");
+    divContenido.appendChild(pFechaRevFin);
+    const pComprobante = document.createElement("p");
+    if (idRev !== "N/A") {
+      pComprobante.innerHTML = "Comprobante: <a href='DownloadComprobanteServlet?id=" 
+                                + idRev + "' target='_blank'>Descargar</a>";
+    } else {
+      pComprobante.textContent = "Comprobante: N/A";
+    }
+    divContenido.appendChild(pComprobante);
+    if (usuarioCargo === "Administrador" || usuarioCargo === "Desarrollador") {
+      const btnEditar = document.createElement("button");
+      btnEditar.textContent = "Editar Revisión";
+      btnEditar.className = "btn-revision";
+      btnEditar.style.marginTop = "0.5rem";
+      btnEditar.onclick = function() {
+        editarRevision(revision);
+      };
+      divContenido.appendChild(btnEditar);
+    }
+    divRevision.appendChild(divContenido);
+    contenedor.appendChild(divRevision);
+  });
+}
+function editarRevision(revision) {
+  document.getElementById("idRevisionEditar").value = revision.IdRevision || "";
+  document.getElementById("fechaRevEditar").value = revision.FechaRev || "";
+  document.getElementById("modalEditarRevision").style.display = "flex";
+}
+function cerrarModalEditarRevision() {
+  document.getElementById("modalEditarRevision").style.display = "none";
 }
 function agregarRevision() {
     document.getElementById("placaRevision").value = placaActual;
     document.getElementById('modalAgregarRevision').style.display = "flex";
-  }
+}
 function  cerrarModalAgregarRevision(){
     document.getElementById('modalAgregarRevision').style.display="none";
   }
@@ -889,7 +1091,7 @@ function mostrarSOAT() {
     if (!placaActual) {
     console.error("La placa global no está definida.");
     return;
-    }
+}
     ocultarSecciones();
     document.getElementById("seccion-SOAT").style.display = "block";
     fetch('BDSoatServlet?placa=' + encodeURIComponent(placaActual))
@@ -908,22 +1110,23 @@ function mostrarSOAT() {
     });
 }
 function actualizarFormularioSOAT(listaSoat) {
-    const contenedor = document.getElementById("contenedorSOAT");
-    contenedor.innerHTML = "";
-    listaSoat.forEach(soat => {
+  const contenedor = document.getElementById("contenedorSOAT");
+  contenedor.innerHTML = "";
+  listaSoat.forEach(soat => {
     const divSoat = document.createElement("div");
     divSoat.style.marginBottom = "1rem";
-    const btn = document.createElement("button");
-    btn.className = "btn-revision";
+    const btnToggle = document.createElement("button");
+    btnToggle.className = "btn-revision";
     const btnContent = document.createElement("span");
     btnContent.className = "button-content";
     const idSoat = (soat.IdSOAT !== undefined) ? soat.IdSOAT : "N/A";
     btnContent.textContent = "SOAT " + idSoat;
-    btn.appendChild(btnContent);
-    btn.onclick = function() {
+    btnToggle.appendChild(btnContent);
+    btnToggle.onclick = function() {
       const contenido = this.nextElementSibling;
       contenido.style.display = (contenido.style.display === "block") ? "none" : "block";
     };
+    divSoat.appendChild(btnToggle);
     const divContenido = document.createElement("div");
     divContenido.style.display = "none";
     divContenido.style.border = "1px solid #ccc";
@@ -931,32 +1134,43 @@ function actualizarFormularioSOAT(listaSoat) {
     divContenido.style.borderRadius = "0.5rem";
     divContenido.style.marginTop = "0.5rem";
     const pFechaPago = document.createElement("p");
-    pFechaPago.textContent = "Fecha Pago SOAT: " + (
-      soat.FechaPagoSOAT !== undefined ? soat.FechaPagoSOAT : "N/A"
-    );
+    pFechaPago.textContent = "Fecha Pago SOAT: " + (soat.FechaPagoSOAT !== undefined ? soat.FechaPagoSOAT : "N/A");
+    divContenido.appendChild(pFechaPago);
     const pFechaFin = document.createElement("p");
-    pFechaFin.textContent = "Fecha Fin Pago SOAT: " + (
-      soat.FechaFinPagoSOAT !== undefined ? soat.FechaFinPagoSOAT : "N/A"
-    );
+    pFechaFin.textContent = "Fecha Fin Pago SOAT: " + (soat.FechaFinPagoSOAT !== undefined ? soat.FechaFinPagoSOAT : "N/A");
+    divContenido.appendChild(pFechaFin);
     const pMonto = document.createElement("p");
-    pMonto.textContent = "Monto Pago SOAT: " + (
-      soat.MontoPagoSOAT !== undefined ? soat.MontoPagoSOAT : "N/A"
-    );
+    pMonto.textContent = "Monto Pago SOAT: " + (soat.MontoPagoSOAT !== undefined ? soat.MontoPagoSOAT : "N/A");
+    divContenido.appendChild(pMonto);
     const pComprobante = document.createElement("p");
     if (idSoat !== "N/A") {
-      pComprobante.innerHTML = "Comprobante: <a href='DownloadSoatServlet?id="
-        + idSoat + "' target='_blank'>Descargar</a>";
+      pComprobante.innerHTML = "Comprobante: <a href='DownloadSoatServlet?id=" + idSoat + "' target='_blank'>Descargar</a>";
     } else {
       pComprobante.textContent = "Comprobante: N/A";
     }
-    divContenido.appendChild(pFechaPago);
-    divContenido.appendChild(pFechaFin);
-    divContenido.appendChild(pMonto);
     divContenido.appendChild(pComprobante);
-    divSoat.appendChild(btn);
+    if (usuarioCargo === "Administrador" || usuarioCargo === "Desarrollador") {
+    const btnEditar = document.createElement("button");
+    btnEditar.textContent = "Editar SOAT";
+    btnEditar.className = "btn-revision";
+    btnEditar.style.marginTop = "0.5rem";
+    btnEditar.onclick = function() {
+      editarSoat(soat);
+    };
+    divContenido.appendChild(btnEditar);
+  }
     divSoat.appendChild(divContenido);
     contenedor.appendChild(divSoat);
   });
+}
+function editarSoat(soat) {
+  document.getElementById("idSoatEditar").value = soat.IdSOAT || "";
+  document.getElementById("fechaSoatEditar").value = soat.FechaPagoSOAT || "";
+  document.getElementById("montoSoatEditar").value = soat.MontoPagoSOAT || "";
+  document.getElementById("modalEditarSoat").style.display = "flex";
+}
+function cerrarModalEditarSoat() {
+  document.getElementById("modalEditarSoat").style.display = "none";
 }
 function agregarSOAT() {
   document.getElementById("placaSoat").value = placaActual;
@@ -1000,22 +1214,23 @@ function mostrarObservaciones() {
     });
 }
 function actualizarFormularioObservaciones(listaObs) {
-    const contenedor = document.getElementById("contenedorObservaciones");
-    contenedor.innerHTML = "";
-    listaObs.forEach(obs => {
+  const contenedor = document.getElementById("contenedorObservaciones");
+  contenedor.innerHTML = "";
+  listaObs.forEach(obs => {
     const divObs = document.createElement("div");
     divObs.style.marginBottom = "1rem";
-    const btn = document.createElement("button");
-    btn.className = "btn-revision";
+    const btnToggle = document.createElement("button");
+    btnToggle.className = "btn-revision";
     const btnContent = document.createElement("span");
     btnContent.className = "button-content";
     const idObs = (obs.id !== undefined) ? obs.id : "N/A";
     btnContent.textContent = "Observación " + idObs;
-    btn.appendChild(btnContent);
-    btn.onclick = function() {
+    btnToggle.appendChild(btnContent);
+    btnToggle.onclick = function() {
       const contenido = this.nextElementSibling;
       contenido.style.display = (contenido.style.display === "block") ? "none" : "block";
     };
+    divObs.appendChild(btnToggle);
     const divContenido = document.createElement("div");
     divContenido.style.display = "none";
     divContenido.style.border = "1px solid #ccc";
@@ -1023,14 +1238,30 @@ function actualizarFormularioObservaciones(listaObs) {
     divContenido.style.borderRadius = "0.5rem";
     divContenido.style.marginTop = "0.5rem";
     const pComentario = document.createElement("p");
-    pComentario.textContent = "Comentario: " + (
-      obs.comentario !== undefined ? obs.comentario : "N/A"
-    );
+    pComentario.textContent = "Comentario: " + (obs.comentario !== undefined ? obs.comentario : "N/A");
     divContenido.appendChild(pComentario);
-    divObs.appendChild(btn);
+    if (usuarioCargo === "Administrador" || usuarioCargo === "Desarrollador") {
+    const btnEditar = document.createElement("button");
+    btnEditar.textContent = "Editar Observación";
+    btnEditar.className = "btn-revision";
+    btnEditar.style.marginTop = "0.5rem";
+    btnEditar.onclick = function() {
+      editarObservacion(obs);
+    };
+    divContenido.appendChild(btnEditar);
+    }
     divObs.appendChild(divContenido);
     contenedor.appendChild(divObs);
   });
+}
+function editarObservacion(obs) {
+  document.getElementById("idObservacionEditar").value = obs.id || "";
+  document.getElementById("comentarioEditar").value = obs.comentario || "";
+  document.getElementById("modalEditarObservacion").style.display = "flex";
+}
+
+function cerrarModalEditarObservacion() {
+  document.getElementById("modalEditarObservacion").style.display = "none";
 }
 function agregarObservacion() {
     document.getElementById("placaObservacion").value = placaActual;
@@ -1056,22 +1287,23 @@ function mostrarMantenimientoAceite() {
     });
 }
 function actualizarFormularioMantenimientoAceite(listaAceite) {
-    const contenedor = document.getElementById("contenedorAceite");
-    contenedor.innerHTML = "";
-    listaAceite.forEach(mant => {
+  const contenedor = document.getElementById("contenedorAceite");
+  contenedor.innerHTML = "";
+  listaAceite.forEach(mant => {
     const divAceite = document.createElement("div");
     divAceite.style.marginBottom = "1rem";
-    const btn = document.createElement("button");
-    btn.className = "btn-revision";
+    const btnToggle = document.createElement("button");
+    btnToggle.className = "btn-revision";
     const btnContent = document.createElement("span");
     btnContent.className = "button-content";
     const idAceite = (mant.IdMantAceite !== undefined) ? mant.IdMantAceite : "N/A";
     btnContent.textContent = "Mantenimiento Aceite " + idAceite;
-    btn.appendChild(btnContent);
-    btn.onclick = function() {
+    btnToggle.appendChild(btnContent);
+    btnToggle.onclick = function() {
       const contenido = this.nextElementSibling;
       contenido.style.display = (contenido.style.display === "block") ? "none" : "block";
     };
+    divAceite.appendChild(btnToggle);
     const divContenido = document.createElement("div");
     divContenido.style.display = "none";
     divContenido.style.border = "1px solid #ccc";
@@ -1079,29 +1311,41 @@ function actualizarFormularioMantenimientoAceite(listaAceite) {
     divContenido.style.borderRadius = "0.5rem";
     divContenido.style.marginTop = "0.5rem";
     const pPrecio = document.createElement("p");
-    pPrecio.textContent = "Precio Aceite: " + (
-      mant.PrecioAceite !== undefined ? mant.PrecioAceite : "N/A"
-    );
+    pPrecio.textContent = "Precio Aceite: " + (mant.PrecioAceite !== undefined ? mant.PrecioAceite : "N/A");
     divContenido.appendChild(pPrecio);
     const pCant = document.createElement("p");
-    pCant.textContent = "Cantidad Aceite: " + (
-      mant.CantAceite !== undefined ? mant.CantAceite : "N/A"
-    );
+    pCant.textContent = "Cantidad Aceite: " + (mant.CantAceite !== undefined ? mant.CantAceite : "N/A");
     divContenido.appendChild(pCant);
     const pFecha = document.createElement("p");
-    pFecha.textContent = "Fecha Cambio Aceite: " + (
-      mant.FechaCambioAceite !== undefined ? mant.FechaCambioAceite : "N/A"
-    );
+    pFecha.textContent = "Fecha Cambio Aceite: " + (mant.FechaCambioAceite !== undefined ? mant.FechaCambioAceite : "N/A");
     divContenido.appendChild(pFecha);
-    const pKM = document.createElement("p");
-    pKM.textContent = "KM Aceite: " + ( 
-      mant.KMAceite !== undefined ? mant.KMAceite : "N/A"
-    );
+   const pKM = document.createElement("p");
+    pKM.textContent = "KM Aceite: " + (mant.KMAceite !== undefined ? mant.KMAceite : "N/A");
     divContenido.appendChild(pKM);
-    divAceite.appendChild(btn);
+    if (usuarioCargo === "Administrador" || usuarioCargo === "Desarrollador") {
+    const btnEditar = document.createElement("button");
+    btnEditar.textContent = "Editar Mantenimiento Aceite";
+    btnEditar.className = "btn-revision";
+    btnEditar.style.marginTop = "0.5rem";
+    btnEditar.onclick = function() {
+      editarMantenimientoAceite(mant);
+    };
+    divContenido.appendChild(btnEditar);
+    }
     divAceite.appendChild(divContenido);
     contenedor.appendChild(divAceite);
   });
+}
+function editarMantenimientoAceite(mant) {
+  document.getElementById("idMantAceiteEditar").value = mant.IdMantAceite || "";
+  document.getElementById("precioAceiteEditar").value = mant.PrecioAceite || "";
+  document.getElementById("cantAceiteEditar").value = mant.CantAceite || "";
+  document.getElementById("fechaCambioAceiteEditar").value = mant.FechaCambioAceite || "";
+  document.getElementById("kmAceiteEditar").value = mant.KMAceite || "";
+  document.getElementById("modalEditarAceite").style.display = "flex";
+}
+function cerrarModalEditarAceite() {
+  document.getElementById("modalEditarAceite").style.display = "none";
 }
 function agregarMantenimientoAceite() {
     document.getElementById("placaMantenimientoAceite").value = placaActual;
@@ -1133,22 +1377,23 @@ function mostrarMantenimientoFAceite() {
     });
 }
 function actualizarFormularioMantenimientoFAceite(listaFA) {
-    const contenedor = document.getElementById("contenedorFiltro");
-    contenedor.innerHTML = "";
-    listaFA.forEach(mant => {
+  const contenedor = document.getElementById("contenedorFiltro");
+  contenedor.innerHTML = "";
+  listaFA.forEach(mant => {
     const divFA = document.createElement("div");
     divFA.style.marginBottom = "1rem";
-    const btn = document.createElement("button");
-    btn.className = "btn-revision"; 
+    const btnToggle = document.createElement("button");
+    btnToggle.className = "btn-revision";
     const btnContent = document.createElement("span");
     btnContent.className = "button-content";
     const idFA = (mant.IdMantFAceite !== undefined) ? mant.IdMantFAceite : "N/A";
     btnContent.textContent = "Mantenimiento Filtro Aceite " + idFA;
-    btn.appendChild(btnContent);
-    btn.onclick = function() {
+    btnToggle.appendChild(btnContent);
+    btnToggle.onclick = function () {
       const contenido = this.nextElementSibling;
       contenido.style.display = (contenido.style.display === "block") ? "none" : "block";
     };
+    divFA.appendChild(btnToggle);
     const divContenido = document.createElement("div");
     divContenido.style.display = "none";
     divContenido.style.border = "1px solid #ccc";
@@ -1164,10 +1409,29 @@ function actualizarFormularioMantenimientoFAceite(listaFA) {
     const pKM = document.createElement("p");
     pKM.textContent = "KM FA: " + (mant.KMFA || "N/A");
     divContenido.appendChild(pKM);
-    divFA.appendChild(btn);
+    if (usuarioCargo === "Administrador" || usuarioCargo === "Desarrollador") {
+    const btnEditar = document.createElement("button");
+    btnEditar.textContent = "Editar Mantenimiento Filtro Aceite";
+    btnEditar.className = "btn-revision";
+    btnEditar.style.marginTop = "0.5rem";
+    btnEditar.onclick = function () {
+      editarMantenimientoFAceite(mant);
+    };
+    divContenido.appendChild(btnEditar);
+    }
     divFA.appendChild(divContenido);
     contenedor.appendChild(divFA);
   });
+}
+function editarMantenimientoFAceite(mant) {
+  document.getElementById("idMantFAceiteEditar").value = mant.IdMantFAceite || "";
+  document.getElementById("precioFAceiteEditar").value = mant.PrecioFAceite || "";
+  document.getElementById("fechaCambioFAEditar").value = mant.FechaCambioFA || "";
+  document.getElementById("kmFAEditar").value = mant.KMFA || "";
+  document.getElementById("modalEditarFAceite").style.display = "flex";
+}
+function cerrarModalEditarFAceite() {
+  document.getElementById("modalEditarFAceite").style.display = "none";
 }
 function agregarMantenimientoFiltro() {
     document.getElementById("placaMantenimientoFAceite").value = placaActual;
@@ -1199,22 +1463,23 @@ function mostrarMantenimientoSuspension() {
     });
 }
 function actualizarFormularioMantenimientoSuspension(listaSus) {
-    const contenedor = document.getElementById("contenedorSuspension");
-    contenedor.innerHTML = "";
-    listaSus.forEach(mant => {
+  const contenedor = document.getElementById("contenedorSuspension");
+  contenedor.innerHTML = "";
+  listaSus.forEach(mant => {
     const divSus = document.createElement("div");
     divSus.style.marginBottom = "1rem";
-    const btn = document.createElement("button");
-    btn.className = "btn-revision";
+    const btnToggle = document.createElement("button");
+    btnToggle.className = "btn-revision";
     const btnContent = document.createElement("span");
     btnContent.className = "button-content";
     const idSus = (mant.IdMantSuspension !== undefined) ? mant.IdMantSuspension : "N/A";
     btnContent.textContent = "Mantenimiento Suspensión " + idSus;
-    btn.appendChild(btnContent);
-    btn.onclick = function() {
+    btnToggle.appendChild(btnContent);
+    btnToggle.onclick = function() {
       const contenido = this.nextElementSibling;
       contenido.style.display = (contenido.style.display === "block") ? "none" : "block";
     };
+    divSus.appendChild(btnToggle);
     const divContenido = document.createElement("div");
     divContenido.style.display = "none";
     divContenido.style.border = "1px solid #ccc";
@@ -1230,10 +1495,30 @@ function actualizarFormularioMantenimientoSuspension(listaSus) {
     const pKM = document.createElement("p");
     pKM.textContent = "KM Suspensión: " + (mant.KMSus || "N/A");
     divContenido.appendChild(pKM);
-    divSus.appendChild(btn);
+    if (usuarioCargo === "Administrador" || usuarioCargo === "Desarrollador") {
+    const btnEditar = document.createElement("button");
+    btnEditar.textContent = "Editar Mantenimiento Suspensión";
+    btnEditar.className = "btn-revision";
+    btnEditar.style.marginTop = "0.5rem";
+    btnEditar.onclick = function() {
+      editarMantenimientoSuspension(mant);
+    };
+    divContenido.appendChild(btnEditar);
+    }
     divSus.appendChild(divContenido);
     contenedor.appendChild(divSus);
   });
+}
+function editarMantenimientoSuspension(mant) {
+  document.getElementById("idMantSuspensionEditar").value = mant.IdMantSuspension || "";
+  document.getElementById("placaSuspensionEditar").value = mant.Placa || "";
+  document.getElementById("precioSuspensionEditar").value = mant.Precio || "";
+  document.getElementById("fechaSuspensionEditar").value = mant.FechaCambioSus || "";
+  document.getElementById("kmSuspensionEditar").value = mant.KMSus || "";
+  document.getElementById("modalEditarSuspension").style.display = "flex";
+}
+function cerrarModalEditarSuspension() {
+  document.getElementById("modalEditarSuspension").style.display = "none";
 }
 function agregarMantenimientoSuspension() {
     document.getElementById("placaMantenimientoSuspension").value = placaActual;
@@ -1265,22 +1550,23 @@ function mostrarMantenimientoMotor() {
     });
 }
 function actualizarFormularioMantenimientoMotor(listaMotor) {
-    const contenedor = document.getElementById("contenedorMotor");
-    contenedor.innerHTML = "";
-    listaMotor.forEach(mant => {
+  const contenedor = document.getElementById("contenedorMotor");
+  contenedor.innerHTML = "";
+  listaMotor.forEach(mant => {
     const divMotor = document.createElement("div");
     divMotor.style.marginBottom = "1rem";
-    const btn = document.createElement("button");
-    btn.className = "btn-revision";
+    const btnToggle = document.createElement("button");
+    btnToggle.className = "btn-revision";
     const btnContent = document.createElement("span");
     btnContent.className = "button-content";
     const idMotor = (mant.IdMantMotor !== undefined) ? mant.IdMantMotor : "N/A";
     btnContent.textContent = "Mantenimiento Motor " + idMotor;
-    btn.appendChild(btnContent);
-    btn.onclick = function() {
+    btnToggle.appendChild(btnContent);
+    btnToggle.onclick = function() {
       const contenido = this.nextElementSibling;
       contenido.style.display = (contenido.style.display === "block") ? "none" : "block";
     };
+    divMotor.appendChild(btnToggle);
     const divContenido = document.createElement("div");
     divContenido.style.display = "none";
     divContenido.style.border = "1px solid #ccc";
@@ -1296,10 +1582,30 @@ function actualizarFormularioMantenimientoMotor(listaMotor) {
     const pKM = document.createElement("p");
     pKM.textContent = "Kilometraje: " + (mant.Kilometraje || "N/A");
     divContenido.appendChild(pKM);
-    divMotor.appendChild(btn);
+    if (usuarioCargo === "Administrador" || usuarioCargo === "Desarrollador") {
+    const btnEditar = document.createElement("button");
+    btnEditar.textContent = "Editar Mantenimiento Motor";
+    btnEditar.className = "btn-revision";
+    btnEditar.style.marginTop = "0.5rem";
+    btnEditar.onclick = function() {
+      editarMantenimientoMotor(mant);
+    };
+    divContenido.appendChild(btnEditar);
+    }
     divMotor.appendChild(divContenido);
     contenedor.appendChild(divMotor);
   });
+}
+ function editarMantenimientoMotor(mant) {
+      document.getElementById("idMantMotorEditar").value = mant.IdMantMotor || "";
+      document.getElementById("placaMantenimientoMotorEditar").value = mant.Placa || "";
+      document.getElementById("precioMantenimientoMotorEditar").value = mant.Precio || "";
+      document.getElementById("fechaMantenimientoMotorEditar").value = mant.FechaMotor || "";
+      document.getElementById("kilometrajeMantenimientoMotorEditar").value = mant.Kilometraje || "";
+      document.getElementById("modalEditarMantenimientoMotor").style.display = "flex";
+}
+function cerrarModalEditarMantenimientoMotor() {
+      document.getElementById("modalEditarMantenimientoMotor").style.display = "none";
 }
 function agregarMantenimientoMotor() {
     document.getElementById("placaMantenimientoMotor").value = placaActual;
@@ -1331,22 +1637,23 @@ function mostrarRepostaje() {
     });
 }
 function actualizarFormularioCombustible(listaComb) {
-    const contenedor = document.getElementById("contenedorRepostaje");
-    contenedor.innerHTML = "";
-    listaComb.forEach(item => {
+  const contenedor = document.getElementById("contenedorRepostaje");
+  contenedor.innerHTML = "";
+  listaComb.forEach(item => {
     const divComb = document.createElement("div");
     divComb.style.marginBottom = "1rem";
-    const btn = document.createElement("button");
-    btn.className = "btn-revision";
+    const btnToggle = document.createElement("button");
+    btnToggle.className = "btn-revision";
     const btnContent = document.createElement("span");
     btnContent.className = "button-content";
     const idComb = (item.IdCombustible !== undefined) ? item.IdCombustible : "N/A";
     btnContent.textContent = "Repostaje " + idComb;
-    btn.appendChild(btnContent);
-    btn.onclick = function() {
+    btnToggle.appendChild(btnContent);
+    btnToggle.onclick = function() {
       const contenido = this.nextElementSibling;
       contenido.style.display = (contenido.style.display === "block") ? "none" : "block";
     };
+    divComb.appendChild(btnToggle);
     const divContenido = document.createElement("div");
     divContenido.style.display = "none";
     divContenido.style.border = "1px solid #ccc";
@@ -1354,10 +1661,10 @@ function actualizarFormularioCombustible(listaComb) {
     divContenido.style.borderRadius = "0.5rem";
     divContenido.style.marginTop = "0.5rem";
     const pGalones = document.createElement("p");
-    pGalones.textContent = "Galones: " + (item.Galones || "N/A");
+    pGalones.textContent = "Galones: " + ((item.Galones !== undefined) ? item.Galones + " gal." : "N/A");
     divContenido.appendChild(pGalones);
     const pPrecio = document.createElement("p");
-    pPrecio.textContent = "PrecioComb: " + (item.PrecioComb || "N/A");
+    pPrecio.textContent = "PrecioComb: " + ((item.PrecioComb !== undefined) ? item.PrecioComb + " S/." : "N/A");
     divContenido.appendChild(pPrecio);
     const pFecha = document.createElement("p");
     pFecha.textContent = "FechaPagoComb: " + (item.FechaPagoComb || "N/A");
@@ -1366,13 +1673,34 @@ function actualizarFormularioCombustible(listaComb) {
     pTipo.textContent = "TipoCombustible: " + (item.TipoCombustible || "N/A");
     divContenido.appendChild(pTipo);
     const pKM = document.createElement("p");
-    pKM.textContent = "KMComb: " + (item.KMComb || "N/A");
+    pKM.textContent = "KMComb: " + ((item.KMComb !== undefined) ? item.KMComb + " Km." : "N/A");
     divContenido.appendChild(pKM);
-    divComb.appendChild(btn);
+    if (usuarioCargo === "Administrador" || usuarioCargo === "Desarrollador") {
+    const btnEditar = document.createElement("button");
+    btnEditar.textContent = "Editar Repostaje";
+    btnEditar.className = "btn-revision";
+    btnEditar.style.marginTop = "0.5rem";
+    btnEditar.onclick = function() {
+      editarRepostaje(item);
+    };
+    divContenido.appendChild(btnEditar);
+    }
     divComb.appendChild(divContenido);
     contenedor.appendChild(divComb);
   });
 }
+function cerrarModalEditarCombustible() {
+    document.getElementById("modalEditarCombustible").style.display = "none";
+  }
+  function editarRepostaje(item) {
+    document.getElementById("idCombustibleEditar").value = item.IdCombustible || "";
+    document.getElementById("galonesEditar").value = item.Galones || "";
+    document.getElementById("precioCombEditar").value = item.PrecioComb || "";
+    document.getElementById("fechaPagoCombEditar").value = item.FechaPagoComb || "";
+    document.getElementById("tipoCombustibleEditar").value = item.TipoCombustible || "";
+    document.getElementById("kmCombEditar").value = item.KMComb || "";
+    document.getElementById("modalEditarCombustible").style.display = "flex";
+  }
 function agregarCombustible() {
   document.getElementById("placaCombustible").value = placaActual;
   document.getElementById("modalAgregarCombustible").style.display = "flex";

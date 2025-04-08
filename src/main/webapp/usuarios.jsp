@@ -351,7 +351,7 @@
                         <td><%= nombre %></td>
                         <td><%= cargo %></td>
                         <td><%= correo %></td>
-                        <td><%= contrasena %></td>
+                        <td>******</td>
                         <td>
                             <a class="button-link" href="javascript:cargarEditarUsuario('<%= dni %>', '<%= nombre %>', '<%= cargo %>', '<%= correo %>', '<%= contrasena %>')">Editar</a>
                             <a class="button-link" href="usuarios.jsp?accion=eliminarUsuario&dni=<%= dni %>" onclick="return confirm('¿Está seguro de eliminar este usuario?');">Eliminar</a>

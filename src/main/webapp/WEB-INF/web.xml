@@ -15,8 +15,6 @@
     <servlet-name>DatosServlet</servlet-name>
     <url-pattern>/datos</url-pattern>
 </servlet-mapping>
-
-    <!-- Aquí declaramos la página de bienvenida -->
     <welcome-file-list>
         <welcome-file>ingreso.jsp</welcome-file>
     </welcome-file-list>
